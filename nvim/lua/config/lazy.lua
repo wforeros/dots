@@ -6,6 +6,7 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
 end
 vim.opt.rtp:prepend(lazypath)
+table.insert(vim._so_trails, "/?.dylib")
 
 require("lazy").setup({
   spec = {
@@ -20,6 +21,14 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.linting.eslint" },
     { import = "lazyvim.plugins.extras.formatting.prettier" },
+    { import = "lazyvim.plugins.extras.test.core" },
+    {
+      import = "lazyvim.plugins.extras.util.octo",
+      config = function()
+        require("octo").setup({ enable_builtin = true })
+        vim.cmd([[hi OctoEditable guibg=#1e1e1e]])
+      end,
+    },
     -- import/override with your plugins
     { import = "plugins" },
   },
