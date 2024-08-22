@@ -50,6 +50,9 @@ vim.keymap.set("n", "<leader>oit", ":ObsidianTemplate<CR>", { desc = "Insert Obs
 -- Rename
 vim.keymap.set("n", "<leader>rn", ":IncRename ")
 
+-- Buffers
+vim.keymap.set("n", "<leader>n", "<cmd>:bd<CR>", { desc = "Close buffer" })
+
 local M = {}
 
 local ls = require("luasnip")
