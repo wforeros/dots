@@ -1,3 +1,13 @@
+local border = {
+  { "╭", "Comment" },
+  { "─", "Comment" },
+  { "╮", "Comment" },
+  { "│", "Comment" },
+  { "╯", "Comment" },
+  { "─", "Comment" },
+  { "╰", "Comment" },
+  { "│", "Comment" },
+}
 -- Disable "No information available" notification on hover
 -- plus define border for hover window
 vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
@@ -26,9 +36,23 @@ vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
   return vim.lsp.util.open_floating_preview(markdown_lines, "markdown", config)
 end
 
+vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+  border = border,
+})
+
 return {
   {
     "neovim/nvim-lspconfig",
+    dependencies = {
+      "jose-elias-alvarez/typescript.nvim",
+      init = function()
+        require("lazyvim.util").lsp.on_attach(function(_, buffer)
+          -- stylua: ignore
+          vim.keymap.set( "n", "<leader>co", "TypescriptOrganizeImports", { buffer = buffer, desc = "Organize Imports" })
+          vim.keymap.set("n", "<leader>cR", "TypescriptRenameFile", { desc = "Rename File", buffer = buffer })
+        end)
+      end,
+    },
     opts = {
       servers = {
         vtsls = {
@@ -46,9 +70,31 @@ return {
           },
         },
       },
+      tsserver = {},
+      solargraph = {},
+      rubocop = {},
+      standardrb = {},
+      pyright = {},
     },
   },
+  {
+    "ray-x/lsp_signature.nvim",
+    event = "VeryLazy",
+    opts = {},
+    config = function(_, opts)
+      require("lspconfig").gopls.setup()
+      opts.bind = true
+      opts.handler_opts = { border = "rounded" }
+      require("lsp_signature").setup({
+        bind = true, -- This is mandatory, otherwise border config won't get registered.
+        handler_opts = {
+          border = "rounded",
+        },
+      })
+    end,
+  },
 }
+
 -- return {
 --   "neovim/nvim-lspconfig",
 --   event = "LazyFile",

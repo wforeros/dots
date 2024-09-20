@@ -9,6 +9,9 @@ return {
     lazy = false,
     opts = {},
   },
+  {
+    "marciomazza/vim-brogrammer-theme",
+  },
   -- { "kartikp10/noctis.nvim", dependencies = { "rktjmp/lush.nvim" } },
   {
     "navarasu/onedark.nvim",
@@ -42,7 +45,7 @@ return {
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "cyberdream",
+      colorscheme = "catppuccin-macchiato",
     },
   },
   {
