@@ -8,12 +8,6 @@ vim.keymap.set("i", "jj", "<esc>")
 vim.keymap.set("i", "<C-b>", "<C-o>de")
 vim.keymap.set("i", "<c-r>", "<esc><c-r><esc>i", { silent = true })
 vim.keymap.set("i", "<C-d>", "<Esc>u<Esc>i", { silent = true })
-vim.keymap.set("i", "<C-Space>", 'copilot#Accept("\\<CR>")', {
-  expr = true,
-  replace_keycodes = false,
-})
-
-vim.g.copilot_no_tab_map = false
 vim.keymap.set("n", "<CapsLock>", "<Ctrl>", { silent = true })
 
 vim.keymap.set("n", "[h", ":GitGutterPrevHunk <CR>", { desc = "Jump to the previous git hunk" })

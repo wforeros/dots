@@ -1,4 +1,4 @@
-return {
+local config = {
   {
     "hrsh7th/nvim-cmp",
     opts = function(_, opts)
@@ -33,3 +33,25 @@ return {
     end,
   },
 }
+
+local cmp = require("cmp")
+
+cmp.setup({
+  mapping = {
+    ["<S-Tab>"] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      else
+        fallback()
+      end
+    end, { "i", "s" }),
+  },
+  sources = {
+    { name = "copilot" },
+    { name = "nvim_lsp" },
+    { name = "buffer" },
+    { name = "path" },
+  },
+})
+
+return config
