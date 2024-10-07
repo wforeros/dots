@@ -140,6 +140,7 @@ alias vf='nvim $(fzf --preview "bat --color=always {}")'
 
 # Tmux
 alias t="tmux"
+alias tn="tmux new"
 alias tls="tmux ls"
 alias ta='tmux attach -t "$(tmux ls | fzf | sed  "s/:.*//")"'
 alias ts='tmux-sessionizer'
