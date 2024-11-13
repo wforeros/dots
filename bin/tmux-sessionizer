@@ -3,7 +3,7 @@
 if [[ $# -eq 1 ]]; then
 	selected_session=$1
 else
-	selected_session=$(fd -td -I --min-depth 1 '' ~/Documents/3pi/dev/ | fzf)
+	selected_session=$(fd -td -I --min-depth 1 '' ~/Documents/dev/3pi/dev/ | fzf)
 fi
 
 if [[ -z $selected_session ]]; then
