@@ -3,6 +3,12 @@
 -- Add any additional keymaps here
 --
 
+-- Remove ^M
+
+vim.keymap.set("n", ",m", function()
+  vim.cmd(":%s/\r//g")
+end, { desc = "Remove windows jump line characters (^M)" })
+
 -- Map Ctrl+b in insert mode to delete to the end of the word without leaving insert mode
 vim.keymap.set("i", "jj", "<esc>")
 vim.keymap.set("i", "<C-b>", "<C-o>de")
@@ -45,7 +51,10 @@ vim.keymap.set("n", "<leader>oit", ":ObsidianTemplate<CR>", { desc = "Insert Obs
 vim.keymap.set("n", "<leader>rn", ":IncRename ")
 
 -- Buffers
-vim.keymap.set("n", "<leader>n", "<cmd>:bd<CR>", { desc = "Close buffer" })
+vim.keymap.set("n", "<leader>n", "<leader>bd", { noremap = true, desc = "Close buffer" })
+
+-- Registers
+vim.keymap.set("n", '<leader>"', ":FzfLua registers<CR>", { desc = "Fzf Registers" })
 
 local M = {}
 

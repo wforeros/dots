@@ -32,7 +32,16 @@ return {
       })
     end,
   },
-  { "catppuccin/nvim", name = "catppuccin", lazy = false, opts = { flavour = "macchiato" } },
+  {
+    "catppuccin/nvim",
+    name = "catppuccin",
+    lazy = false,
+    opts = {
+      transparent_background = true,
+      flavour = "moccha",
+      italic = false,
+    },
+  },
   {
     "scottmckendry/cyberdream.nvim",
     lazy = false,
@@ -45,7 +54,9 @@ return {
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "catppuccin-macchiato",
+      -- colorscheme = "catppuccin-macchiato",
+      colorscheme = "cyberdream",
+      transparent_background = true,
     },
   },
   {
