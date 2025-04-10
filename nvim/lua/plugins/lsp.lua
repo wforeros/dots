@@ -54,7 +54,24 @@ return {
       end,
     },
     opts = {
+      inlay_hints = {
+        enabled = true,
+        exclude = { "vue" }, -- filetypes for which you don't want to enable inlay hints
+      },
       servers = {
+        pyright = {
+          settings = {
+            python = {
+              inlayHints = {
+                functionReturnTypes = true,
+                variableTypes = true,
+                parameterTypes = true,
+                boolCoerceToString = true,
+                callArgumentNames = "literals",
+              },
+            },
+          },
+        },
         vtsls = {
           settings = {
             typescript = {
@@ -72,9 +89,9 @@ return {
       },
       tsserver = {},
       solargraph = {},
-      rubocop = {},
-      standardrb = {},
-      pyright = {},
+      -- rubocop = {},
+      -- standardrb = {},
+      -- pyright = {},
     },
   },
 }
