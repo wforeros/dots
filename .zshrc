@@ -80,7 +80,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-syntax-highlighting autojump)
+plugins=(git zsh-syntax-highlighting z)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -91,7 +91,7 @@ source $ZSH/oh-my-zsh.sh
 export CONFIG_DIR="$HOME/.config"
 
 export PATH="$HOME/.config/bin:$PATH"
-
+export PATH="$PATH:$HOME/squashfs-root/usr/bin"
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
@@ -123,20 +123,28 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 alias vim="nvim"
+alias v="nvim"
 
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+# export PYENV_ROOT="$HOME/.pyenv"
+# [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+# eval "$(pyenv init -)"
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-alias ls='colorls'
+# alias ls='colorls'
 
+alias open='nautilus'
 alias ll='ls -l'
 alias la='ls -a'
 alias lla='ls -la'
 
 alias c='clear'
+
+export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+
+# Cargar los scripts de fzf (key bindings y autocompletado)
+[ -f /home/linuxbrew/.linuxbrew/opt/fzf/shell/key-bindings.zsh ] && source /home/linuxbrew/.linuxbrew/opt/fzf/shell/key-bindings.zsh
+[ -f /home/linuxbrew/.linuxbrew/opt/fzf/shell/completion.zsh ] && source /home/linuxbrew/.linuxbrew/opt/fzf/shell/completion.zsh
 
 source <(fzf --zsh)
 export FZF_DEFAULT_OPTS='--layout=reverse --border'
@@ -152,6 +160,7 @@ alias tks='tmux kill-session -t "$(tmux ls | fzf | sed  "s/:.*//")"'
 
 # Git
 alias lg="lazygit"
+alias lzd="lazydocker"
 
 # Go Air
 alias air='~/go/bin/air'
@@ -174,5 +183,8 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 
-. "$HOME/.asdf/asdf.sh"
-. "$HOME/.asdf/completions/asdf.bash"
+# . $HOME/.linuxbrew/opt/asdf/libexec/asdf.sh
+# . $HOME/.linuxbrew/opt/asdf/etc/bash_completion.d/asdf.bash
+source /home/wforeros/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
