@@ -11,6 +11,7 @@ if [[ -z $selected_session ]]; then
 fi
 
 selected_name=$(basename "$selected_session" | tr . _)
+selected_name=${selected_name:0:8}
 tmux_running=$(pgrep tmux)
 
 if [[ -z $TMUX ]]; then
