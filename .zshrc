@@ -161,9 +161,16 @@ alias tks='tmux kill-session -t "$(tmux ls | fzf | sed  "s/:.*//")"'
 # Git
 alias lg="lazygit"
 alias lzd="lazydocker"
+alias mk="minikube"
+alias k="kubectl"
 
 # Go Air
 alias air='~/go/bin/air'
+
+# Otros
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
 
 # Amazon Q post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
