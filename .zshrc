@@ -168,6 +168,8 @@ alias k="kubectl"
 alias air='~/go/bin/air'
 
 # Otros
+# Audio I/O i3wm
+alias audio='pavucontrol'
 mkcd() {
     mkdir -p "$1" && cd "$1"
 }
