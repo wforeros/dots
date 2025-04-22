@@ -40,3 +40,9 @@ La configuración de `zsh` funciona con ohmyzsh e incluye:
 
 - Atajos de teclado personalizados
 - Plugins para mejorar la funcionalidad
+
+## Otros
+
+- i3wm (Para el gestor de ventanas)
+- compton (Para trasparencia)
+- feh (Para poner fondos)
