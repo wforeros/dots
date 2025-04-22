@@ -110,15 +110,15 @@ set $lm HDMI-1
 set $rm HDMI-0
 
 workspace 1 output $lm
-workspace 2 output $lm
-workspace 3 output $lm
+workspace 2 output $cm
+workspace 3 output $rm
 
-workspace 4 output $cm
+workspace 4 output $lm
 workspace 5 output $cm
-workspace 6 output $cm
+workspace 6 output $rm
 
-workspace 7 output $rm
-workspace 8 output $rm
+workspace 7 output $lm
+workspace 8 output $cm
 workspace 9 output $rm
 
 # # switch to workspace
@@ -228,6 +228,8 @@ bar {
         tray_output primary
 }
 
+exec_always feh --bg-fill /home/$USER/Imágenes/wallpaper2.png
+exec_always compton --config /home/$USER/.config/compton.conf
 # ------------------------------------------
 # CUSTOM KEYS START
 # ------------------------------------------
@@ -255,3 +257,7 @@ bindsym $mod+m move workspace to output left
 # Suspend
 bindsym $mod+Shift+period exec systemctl suspend
 
+# Start base apps
+exec --no-startup-id i3-msg 'workspace 1; exec google-chrome --profile-directory=Default;'
+exec --no-startup-id i3-msg 'workspace 2; exec kitty;'
+exec --no-startup-id i3-msg 'workspace 3; exec google-chrome --profile-directory=Default;'
