@@ -189,6 +189,7 @@ else
         export PATH="/opt/miniconda3/bin:$PATH"
     fi
 fi
+export PATH="$PATH:/usr/local/go/bin"
 unset __conda_setup
 # <<< conda initialize <<<
 
@@ -197,3 +198,4 @@ unset __conda_setup
 source /home/wforeros/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+source /home/wforeros/Documentos/dev/estudio/diplomado/proyecto_final/helm-diplomado-2025-g3/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
