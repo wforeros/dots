@@ -8,6 +8,9 @@ Este repositorio contiene mis archivos de configuración (dot files) para varias
 - [neovim (nvim)](#neovim-nvim)
 - [Scripts](#scripts)
 - [Zsh](#zsh)
+- [i3wm](https://i3wm.org/) (Para el gestor de ventanas) / [GlazeWM](https://github.com/glzr-io/glazewm) (Gestor de ventanas para Windows)
+- [compton](https://github.com/chjj/compton) (Para trasparencia)
+- [feh](https://feh.finalrewind.org/) (Para poner fondos)
 
 ## tmux
 
@@ -42,7 +45,3 @@ La configuración de `zsh` funciona con ohmyzsh e incluye:
 - Plugins para mejorar la funcionalidad
 
 ## Otros
-
-- i3wm (Para el gestor de ventanas)
-- compton (Para trasparencia)
-- feh (Para poner fondos)
