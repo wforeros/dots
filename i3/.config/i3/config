@@ -112,14 +112,15 @@ set $rm HDMI-0
 workspace 1 output $cm
 workspace 2 output $cm
 workspace 3 output $cm
+workspace 4 output $cm
+workspace 5 output $cm
 
-workspace 4 output $rm
-workspace 5 output $rm
-workspace 6 output $rm
-
+workspace 6 output $lm
 workspace 7 output $lm
 workspace 8 output $lm
-workspace 9 output $lm
+
+workspace 9 output $rm
+workspace 9 output $rm
 
 # # switch to workspace
 bindsym $mod+1 workspace 1
@@ -258,6 +259,6 @@ bindsym $mod+m move workspace to output left
 bindsym $mod+Shift+period exec systemctl suspend
 
 # Start base apps
-exec --no-startup-id i3-msg 'workspace 7; exec google-chrome --profile-directory=Default;'
+exec --no-startup-id i3-msg 'workspace 9; exec google-chrome --profile-directory=Default;'
 exec --no-startup-id i3-msg 'workspace 1; exec kitty;'
-exec --no-startup-id i3-msg 'workspace 4; exec google-chrome --profile-directory=Default;'
+exec --no-startup-id i3-msg 'workspace 6; exec google-chrome --profile-directory=Default;'
