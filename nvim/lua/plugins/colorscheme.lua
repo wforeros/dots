@@ -1,5 +1,9 @@
 return {
   {
+    -- It seems like theprimeagen theme
+    "vague2k/vague.nvim",
+  },
+  {
     "rebelot/kanagawa.nvim",
     lazy = false,
     opts = {},
@@ -7,7 +11,14 @@ return {
   {
     "folke/tokyonight.nvim",
     lazy = false,
-    opts = {},
+    config = function()
+      require("tokyonight").setup({
+        transparent = true,
+      })
+    end,
+    opts = {
+      transparent_background = 1,
+    },
   },
   {
     "marciomazza/vim-brogrammer-theme",
@@ -55,7 +66,8 @@ return {
     "LazyVim/LazyVim",
     opts = {
       -- colorscheme = "catppuccin-macchiato",
-      colorscheme = "cyberdream",
+      -- colorscheme = "cyberdream",
+      colorscheme = "tokyonight-moon",
       transparent_background = true,
     },
   },
@@ -136,36 +148,4 @@ return {
       })
     end,
   },
-  --     {
-  --       "lazyvim/lazyvim",
-  jdw, --       opts = {
-  --     --         colorscheme = "cyberdream",
-  --     --       },
-  --     --     },
-  --     --   {
-  --     {
-  --       "scottmckendry/cyberdream.nvim",
-  --       lazy = false,
-  --       priority = 1000,
-  --       opts = function(_, opts)
-  --         opts.transparent = true
-  --         opts.italic_comments = true
-  --         opts.theme = {}
-  --       end,
-  --     },
-  --     --
-  --     -- -- modicator (auto color line number based on vim mode)
-  --     -- {
-  --     --   "mawkler/modicator.nvim",
-  --     --   dependencies = "scottmckendry/cyberdream.nvim",
-  --     --   init = function()
-  --     --     -- These are required for Modicator to work
-  --     --     vim.o.cursorline = false
-  --     --     vim.o.number = true
-  --     --     vim.o.termguicolors = true
-  --     --   end,
-  --     --   opts = {},
-  --     -- },
-  --   },
-  -- },
 }
