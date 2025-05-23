@@ -22,10 +22,12 @@ return {
   },
   {
     "marciomazza/vim-brogrammer-theme",
+    enabled = false,
   },
   -- { "kartikp10/noctis.nvim", dependencies = { "rktjmp/lush.nvim" } },
   {
     "navarasu/onedark.nvim",
+    enabled = false,
     config = function()
       require("onedark").setup({
         style = "cool",
@@ -35,6 +37,7 @@ return {
   {
     "gmr458/vscode_modern_theme.nvim",
     lazy = false,
+    enabled = false,
     config = function()
       require("vscode_modern").setup({
         cursorline = true,
@@ -73,6 +76,7 @@ return {
   },
   {
     "xiyaowong/transparent.nvim",
+    enabled = false,
     config = function()
       require("transparent").setup({ -- Optional, you don't have to run setup.
         groups = { -- table: default groups
@@ -114,6 +118,7 @@ return {
   -- modicator (auto color line number based on vim mode)
   {
     "mawkler/modicator.nvim",
+    enabled = false,
     dependencies = "scottmckendry/cyberdream.nvim",
     init = function()
       -- These are required for Modicator to work

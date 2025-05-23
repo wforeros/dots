@@ -1,5 +1,6 @@
 return {
   "nobbmaestro/nvim-andromeda",
+  enabled = false,
   dependencies = {
     { "tjdevries/colorbuddy.nvim", branch = "dev" },
   },
