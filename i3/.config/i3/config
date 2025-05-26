@@ -230,7 +230,8 @@ bar {
 }
 
 exec_always feh --bg-fill /home/$USER/Imágenes/wallpaper2.png
-exec_always compton --config /home/$USER/.config/compton.conf
+# exec_always compton --config /home/$USER/.config/compton.conf
+exec_always picom --config ~/.config/picom/picom.conf
 # ------------------------------------------
 # CUSTOM KEYS START
 # ------------------------------------------
