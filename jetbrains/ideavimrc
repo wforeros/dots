@@ -1,0 +1,134 @@
+"" Settings ========================================================
+let mapleader=" "
+set number
+set relativenumber
+set clipboard=unnamed
+set which-key
+
+" Plugins
+set easymotion
+set commentary
+set incsearch
+set clipboard+=unnamed
+set clipboard+=ideaput
+set ideajoin
+set idearefactormode=keep
+
+map s <Plug>(easymotion-s)
+map <leader>w <Plug>(easymotion-w)
+
+nnoremap <leader>/ :action SplitVertically<CR>
+nnoremap <leader>- :action SplitHorizontally<CR>
+
+" General
+nnoremap <leader>e :action ActivateProjectToolWindow<CR>
+nnoremap <leader>qe :action HideActiveWindow<CR>
+
+" Project Actions (leader p)
+nnoremap <leader>pm :action EditorPopupMenu.Run<CR>
+nnoremap <leader>ps :action Stop<CR>
+nnoremap <leader>pr :action Rerun<CR>
+
+map <leader>/ :action FindInPath<cr>
+nnoremap gi :action GotoImplementation<CR>
+nnoremap gd :action GotToDeclaration<CR>
+nnoremap gp :action GotToSuperMethod<CR>
+nnoremap gt :action GotoTest<CR>
+nnoremap gb :action Back<CR>
+nnoremap gf :action Forward<CR>
+nnoremap gr :action FindUsages<CR>
+nnoremap H :action PreviousTab<CR>
+nnoremap L :action NextTab<CR>
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+inoremap jj <Esc>
+
+" Ir a la terminal
+nnoremap <leader>t :action ActivateTerminalToolWindow<CR>
+
+" IntelliJ style Zen mode
+nnoremap <leader>z :action ToggleDistractionFreeMode<cr>
+nnoremap <leader><leader>z :action HideAllWindows<cr>
+
+"Find (leader f)
+nnoremap ; :nohlsearch<cr>
+map <leader>fc :action GotoClass<cr>
+map <leader><leader> :action GotoFile<cr>
+map <leader>space :action GotoFile<cr>
+map <leader>fp :action ManageRecentProjects<cr>
+map <leader>fa :action GotoAction<cr>
+map <leader>fg :action FindInPath<cr>
+map <leader>fr :action RecentFiles<cr>
+map <leader>fl :action RecentLocations<cr>
+map <leader>fs :action Find<cr>
+map <leader>fR :action ReplaceInPath<cr>
+map <leader>fx :action PasteMultiple<cr>
+map <leader>ft :action ActivateTODOToolWindow<cr>
+
+
+"Buffers (leader b)
+nnoremap <leader>, :action Switcher<cr>
+nnoremap <leader>n :action CloseContent<cr>
+nnoremap <leader>bd :action CloseContent<cr>
+nnoremap <leader>bo :action CloseOtherEditors<cr>
+nnoremap <leader>bp :action PinActiveTab<cr>
+nnoremap <leader>bP :action CloseAllUnpinnedEditors<cr>
+
+" Search (leader s)
+nnoremap <leader>ss :action GotoSymbol<cr>
+nnoremap <leader>sr :action Replace<cr>
+nnoremap <leader>sg :action FindInPath<cr>
+
+" Code (leader c)
+nnoremap <leader>ca :action ShowIntentionActions<cr>
+nnoremap <leader>cr :action Refactorings.QuickListPopupAction<cr>
+nnoremap <leader>cR :action RefactoringMenuRenameFile<cr>
+nnoremap <leader>cd :action GenerateDoc<cr>
+nnoremap <leader>cc :action Comment<cr>
+nnoremap <leader>co :action OptimizeImports<CR>
+nnoremap <Leader>cf :action ReformatCode<CR>
+nnoremap [[ :action MethodUp<CR>
+nnoremap ]] :action MethodDown<CR>
+nnoremap ]d :action GotoNextError<CR>
+nnoremap [d :action GotoPreviousError<CR>
+
+" Debug (leader d)
+nnoremap <leader>de :action Debug<cr>
+nnoremap <leader>dE :action ChooseDebugConfiguration<cr>
+nnoremap <leader>dr :action Run<cr>
+nnoremap <leader>dR :action ChooseRunConfiguration<cr>
+nnoremap <leader>dk :action Stop<cr>
+nnoremap <leader>db :action ToggleLineBreakpoint<cr>
+nnoremap <leader>dm :action XDebugger.MuteBreakpoints<cr>
+nnoremap <leader>dd :action Debugger.RemoveAllBreakpoints<cr>
+nnoremap <leader>ds :action ViewBreakpoints<cr>
+nnoremap <leader>dv :action StepOver<cr>
+nnoremap <leader>di :action StepInto<cr>
+nnoremap <leader>do :action StepOut<cr>
+nnoremap <leader>dc :action Resume<cr>
+map <leader>dx :action QuickEvaluateExpression<cr>
+map <leader>dt :action EvaluateExpression<cr>
+map <leader>dw :action Debugger.AddToWatch<cr>
+
+if &ide =~? 'intellij idea'
+  nnoremap <leader>sn :action NewClass<cr>
+elseif &ide =~? 'pycharm'
+  nnoremap <leader>sn :action NewPythonFile<cr>
+endif
+nnoremap <leader>sf :action NewFile<cr>
+
+map gn :action NextDiff<cr>
+map gp :action PreviousDiff<cr>
+
+" Harpoon
+nnoremap <leader>1 :action GotoHarpoon1<CR>
+nnoremap <leader>2 :action GotoHarpoon2<CR>
+nnoremap <leader>3 :action GotoHarpoon3<CR>
+nnoremap <leader>4 :action GotoHarpoon4<CR>
+nnoremap <leader>5 :action GotoHarpoon5<CR>
+nnoremap <leader>H AddToHarpoon<CR> :action AddToHarpoon<CR>
+nnoremap <leader>h :action ShowHarpoon<CR>
+
