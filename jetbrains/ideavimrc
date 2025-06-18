@@ -16,7 +16,7 @@ set ideajoin
 set idearefactormode=keep
 
 map s <Plug>(easymotion-s)
-map <leader>w <Plug>(easymotion-w)
+" map <leader>w <Plug>(easymotion-w)
 
 nnoremap <leader>\ :action SplitVertically<CR>
 nnoremap <leader>- :action SplitHorizontally<CR>
@@ -57,8 +57,7 @@ nnoremap <leader>zz :action HideAllWindows<cr>
 "Find (leader f)
 nnoremap ; :nohlsearch<cr>
 map <leader>fc :action GotoClass<cr>
-map <leader><leader> :action GotoFile<cr>
-map <leader>space :action GotoFile<cr>
+"map <leader>ff :action GotoFile<cr>
 map <leader>fp :action ManageRecentProjects<cr>
 map <leader>fa :action GotoAction<cr>
 map <leader>fg :action FindInPath<cr>
@@ -68,10 +67,14 @@ map <leader>fs :action Find<cr>
 map <leader>fR :action ReplaceInPath<cr>
 map <leader>fx :action PasteMultiple<cr>
 map <leader>ft :action ActivateTODOToolWindow<cr>
-
+"map <Leader>pf <action>(com.mituuz.fuzzier.Fuzzier)
+"map <Leader>mf <action>(com.mituuz.fuzzier.FuzzyMover)
+map <Leader><leader> <action>(com.mituuz.fuzzier.FuzzierVCS)
+map <Leader>ff <action>(com.mituuz.fuzzier.FuzzierVCS)
 
 "Buffers (leader b)
-nnoremap <leader>, :action Switcher<cr>
+"nnoremap <leader>, :action Switcher<cr>
+nnoremap <leader>, :action GotoFile<cr>
 nnoremap <leader>n :action CloseContent<cr>
 nnoremap <leader>bd :action CloseContent<cr>
 nnoremap <leader>bo :action CloseAllEditorsButActive<cr>
@@ -81,7 +84,8 @@ nnoremap <leader>bP :action CloseAllUnpinnedEditors<cr>
 " Search (leader s)
 nnoremap <leader>ss :action GotoSymbol<cr>
 nnoremap <leader>sr :action Replace<cr>
-nnoremap <leader>sg :action FindInPath<cr>
+"nnoremap <leader>sg :action FindInPath<cr>
+map <Leader>sg <action>(com.mituuz.fuzzier.FuzzyGrep)
 
 " Code (leader c)
 nnoremap <leader>ca :action ShowIntentionActions<cr>
@@ -134,4 +138,3 @@ nnoremap <leader>4 :action GotoHarpoon4<CR>
 nnoremap <leader>5 :action GotoHarpoon5<CR>
 nnoremap <leader>H :action AddToHarpoon<CR>
 nnoremap <leader>h :action ShowHarpoon<CR>
-
