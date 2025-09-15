@@ -18,6 +18,7 @@
     "lazyvim.plugins.extras.lsp.none-ls",
     "lazyvim.plugins.extras.ui.treesitter-context",
     "lazyvim.plugins.extras.util.mini-hipatterns"
+    "lazyvim.plugins.extras.util.project"
   ],
   "install_version": 7,
   "news": {
