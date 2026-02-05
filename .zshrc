@@ -193,9 +193,20 @@ export PATH="$PATH:/usr/local/go/bin"
 unset __conda_setup
 # <<< conda initialize <<<
 
-# . $HOME/.linuxbrew/opt/asdf/libexec/asdf.sh
-# . $HOME/.linuxbrew/opt/asdf/etc/bash_completion.d/asdf.bash
-source /home/wforeros/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# fnm
+FNM_PATH="/home/wforeros/.local/share/fnm"
+if [ -d "$FNM_PATH" ]; then
+  export PATH="$FNM_PATH:$PATH"
+  eval "`fnm env`"
+fi
 
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-source /home/wforeros/Documentos/dev/estudio/diplomado/proyecto_final/helm-diplomado-2025-g3/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+ZSH_SYNTAX_HIGHLIGHTING="/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+if [ -d "$ZSH_SYNTAX_HIGHLIGHTING" ]; then
+  source "$ZSH_SYNTAX_HIGHLIGHTING"
+fi
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
+# eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+# source /home/wforeros/Documentos/dev/estudio/diplomado/proyecto_final/helm-diplomado-2025-g3/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# opencode
+export PATH=/home/wforeros/.opencode/bin:$PATH
