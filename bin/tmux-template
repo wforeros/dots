@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+tmux_running=$(pgrep tmux)
+
+create_new_window=$1
+
+if [[ -z $TMUX ]]; then
+	# Not in TMUX, so start a new session
+	echo "You are not in a tmux session."
+	exit 1
+fi
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+	--create-window | -cw)
+		tmux new-window
+		;;
+	esac
+	shift
+done
+
+tmux split-window -h -p 30
+tmux select-pane -t 2
+# tmux split-window -v -p 50
+tmux select-pane -t 1
+
+tmux send-keys -t 1 "nvim" C-m
+tmux send-keys -t 2 "opencode" C-m
