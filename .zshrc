@@ -13,6 +13,7 @@ fi
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+ZSHRC_DIR="${0:A:h}"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -80,7 +81,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-syntax-highlighting z)
+plugins=(git z zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -108,32 +109,21 @@ export PATH="$PATH:$HOME/squashfs-root/usr/bin"
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
+# For a full list of active aliases, run alias.
 #
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/trespimnedios/Documents/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/trespimnedios/Documents/google-cloud-sdk/path.zsh.inc'; fi
 
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/trespimnedios/Documents/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/trespimnedios/Documents/google-cloud-sdk/completion.zsh.inc'; fi
-
-# Q post block. Keep at the bottom of this file.
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-alias vim="nvim"
-alias v="nvim"
 
 # export PYENV_ROOT="$HOME/.pyenv"
 # [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 # eval "$(pyenv init -)"
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+# To customize prompt, run p10k configure or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 # alias ls='colorls'
 
-alias open='nautilus'
 alias ll='ls -l'
 alias la='ls -a'
 alias lla='ls -la'
@@ -143,10 +133,15 @@ alias c='clear'
 export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 
 # Cargar los scripts de fzf (key bindings y autocompletado)
-[ -f /home/linuxbrew/.linuxbrew/opt/fzf/shell/key-bindings.zsh ] && source /home/linuxbrew/.linuxbrew/opt/fzf/shell/key-bindings.zsh
-[ -f /home/linuxbrew/.linuxbrew/opt/fzf/shell/completion.zsh ] && source /home/linuxbrew/.linuxbrew/opt/fzf/shell/completion.zsh
+for FZF_DIR in /opt/homebrew/opt/fzf /usr/local/opt/fzf /home/linuxbrew/.linuxbrew/opt/fzf "$HOME/.fzf"; do
+  if [[ -f "$FZF_DIR/shell/key-bindings.zsh" ]]; then
+    source "$FZF_DIR/shell/key-bindings.zsh"
+    [[ -f "$FZF_DIR/shell/completion.zsh" ]] && source "$FZF_DIR/shell/completion.zsh"
+    break
+  fi
+done
+unset FZF_DIR
 
-source <(fzf --zsh)
 export FZF_DEFAULT_OPTS='--layout=reverse --border'
 alias vf='nvim $(fzf --preview "bat --color=always {}")'
 
@@ -155,21 +150,19 @@ alias t="tmux"
 alias tn="tmux new"
 alias tls="tmux ls"
 alias ta='tmux attach -t "$(tmux ls | fzf | sed  "s/:.*//")"'
-alias ts='tmux-sessionizer'
+# alias ts='~/dots/personal/dots/bin/tmux-sessionizer'
+# alias tt='~/dots/personal/dots/bin/tmux-templates'
+alias ts='~/dots/bin/tmux-sessionizer'
+alias tt='~/dots/bin/tmux-template'
 alias tks='tmux kill-session -t "$(tmux ls | fzf | sed  "s/:.*//")"'
 
 # Git
 alias lg="lazygit"
-alias lzd="lazydocker"
-alias mk="minikube"
-alias k="kubectl"
+# source "$HOME/dots/personal/dots/bin/worktree"
 
-# Go Air
-alias air='~/go/bin/air'
+alias lzd="lazydocker"
 
 # Otros
-# Audio I/O i3wm
-alias audio='pavucontrol'
 mkcd() {
     mkdir -p "$1" && cd "$1"
 }
@@ -177,36 +170,98 @@ mkcd() {
 # Amazon Q post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
 
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/opt/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/opt/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/opt/miniconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/opt/miniconda3/bin:$PATH"
-    fi
-fi
-export PATH="$PATH:/usr/local/go/bin"
-unset __conda_setup
-# <<< conda initialize <<<
 
-# fnm
-FNM_PATH="/home/wforeros/.local/share/fnm"
-if [ -d "$FNM_PATH" ]; then
-  export PATH="$FNM_PATH:$PATH"
-  eval "`fnm env`"
+# . $HOME/.linuxbrew/opt/asdf/libexec/asdf.sh
+# . $HOME/.linuxbrew/opt/asdf/etc/bash_completion.d/asdf.bash
+if [[ -r /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then
+  source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
+eval "$(fnm env --use-on-cd --shell zsh)"
 
-ZSH_SYNTAX_HIGHLIGHTING="/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-if [ -d "$ZSH_SYNTAX_HIGHLIGHTING" ]; then
-  source "$ZSH_SYNTAX_HIGHLIGHTING"
+# Refresh snap credentials
+sc() {
+  snapaccess credentials refresh --forceRefresh --email wforerosierra@c.snap.com
+}
+
+# Python
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+lazy_load_pyenv() {
+  unset -f pyenv python python3 pip pip3 lazy_load_pyenv
+  eval "$(pyenv init - zsh)"
+}
+
+pyenv() {
+  lazy_load_pyenv
+  pyenv "$@"
+}
+
+python() {
+  lazy_load_pyenv
+  python "$@"
+}
+
+python3() {
+  lazy_load_pyenv
+  python3 "$@"
+}
+
+pip() {
+  lazy_load_pyenv
+  pip "$@"
+}
+
+pip3() {
+  lazy_load_pyenv
+  pip3 "$@"
+}
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/wforerosierra/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/wforerosierra/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/wforerosierra/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/wforerosierra/google-cloud-sdk/completion.zsh.inc'; fi
+
+export PATH="/usr/local/bin:$PATH"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+# export DB_USER=postgres
+# export DOCKER_DB=db
+# export MY_USER_ID=testing@snapchat.com
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+lazy_load_nvm() {
+  unset -f nvm node npm npx lazy_load_nvm
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+}
+
+nvm() {
+  lazy_load_nvm
+  nvm "$@"
+}
+
+node() {
+  lazy_load_nvm
+  node "$@"
+}
+
+npm() {
+  lazy_load_nvm
+  npm "$@"
+}
+
+npx() {
+  lazy_load_nvm
+  npx "$@"
+}
+
+export PATH="$HOME/.local/bin:$PATH"
+export EDITOR="nvim"
+
+# Keep Ctrl+R mapped to fzf history after all startup scripts.
+if (( $+functions[fzf-history-widget] )); then
+  bindkey -M emacs '^R' fzf-history-widget
+  bindkey -M viins '^R' fzf-history-widget
 fi
-export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
-# eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-# source /home/wforeros/Documentos/dev/estudio/diplomado/proyecto_final/helm-diplomado-2025-g3/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
-# opencode
-export PATH=/home/wforeros/.opencode/bin:$PATH
