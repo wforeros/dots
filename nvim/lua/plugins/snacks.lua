@@ -154,6 +154,7 @@ return {
       },
       sources = {
         files = {
+          hidden = true,
           matcher = {
             fuzzy = true,
             smart_case = true,
