@@ -55,6 +55,34 @@ vim.keymap.set("n", "<leader>n", "<leader>bd", { noremap = true, desc = "Close b
 
 -- Registers
 vim.keymap.set("n", '<leader>"', ":FzfLua registers<CR>", { desc = "Fzf Registers" })
+vim.keymap.set("x", "<leader>cx", function()
+  local start_line = vim.fn.line("v")
+  local end_line = vim.fn.line(".")
+
+  if start_line > end_line then
+    start_line, end_line = end_line, start_line
+  end
+
+  local file_path = vim.fn.expand("%:p")
+  local file_dir = vim.fn.expand("%:p:h")
+  local git_marker = vim.fs.find(".git", { path = file_dir, upward = true })[1]
+  local display_path = file_path
+
+  if git_marker then
+    local git_root = vim.fs.dirname(git_marker)
+    local git_root_prefix = git_root .. "/"
+
+    if file_path:sub(1, #git_root_prefix) == git_root_prefix then
+      display_path = file_path:sub(#git_root_prefix + 1)
+    end
+  end
+
+  local context = string.format("%s#L%d-L%d", display_path, start_line, end_line)
+
+  vim.fn.setreg("+", context)
+  vim.fn.setreg('"', context)
+  vim.notify("Context copied to clipboard", vim.log.levels.INFO)
+end, { desc = "Copy file context for Codex" })
 
 local M = {}
 
@@ -106,3 +134,14 @@ set(mode, "<c-i>", M.expand_or_jump)
 set(mode, "<c-n>", M.jump_prev)
 set(mode, "<c-l>", M.change_choice)
 set(normal, ",r", M.refresh_snippets)
+
+-- Do not overwrite clipboard content when pasting
+vim.keymap.set("x", "p", '"_dP')
+
+vim.keymap.set("n", "<leader>/", function()
+  local text = vim.fn.getreg("+") -- Get clipboard text
+  -- Escape special characters
+  local escaped = vim.fn.escape(text, "\\/^$*.~[]")
+  -- Search using the escaped text
+  vim.api.nvim_feedkeys("/\\V" .. escaped, "n", false)
+end, { desc = "Search clipboard text literally" })
