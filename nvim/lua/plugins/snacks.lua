@@ -60,6 +60,7 @@ return {
         -- "ivy_wider_results",
         -- "ivy_wider_preview",
         -- "ivy_taller",
+        -- preset = "ivy",
         preset = "default",
         -- When reaching the bottom of the results in the picker, I don't want
         -- it to cycle and go back to the top
@@ -114,8 +115,8 @@ return {
         default = {
           layout = {
             box = "horizontal",
-            width = 0.85,
-            height = 0.85,
+            width = 0.99,
+            height = 0.95,
             {
               box = "vertical",
               border = "rounded",
@@ -151,6 +152,14 @@ return {
           truncate = 80,
         },
       },
+      sources = {
+        files = {
+          matcher = {
+            fuzzy = true,
+            smart_case = true,
+          },
+        },
+      },
     },
     image = {
       enabled = true,
@@ -164,13 +173,13 @@ return {
         -- only_render_image_at_cursor = vim.g.neovim_mode == "skitty" and false or true,
         -- render the image in a floating window
         -- only used if `opts.inline` is disabled
-        float = true,
+        -- float = true,
         -- Sets the size of the image
         -- max_width = 60,
         -- max_width = vim.g.neovim_mode == "skitty" and 20 or 60,
         -- max_height = vim.g.neovim_mode == "skitty" and 10 or 30,
-        max_width = vim.g.neovim_mode == "skitty" and 5 or 60,
-        max_height = vim.g.neovim_mode == "skitty" and 2.5 or 30,
+        -- max_width = vim.g.neovim_mode == "skitty" and 5 or 60,
+        -- max_height = vim.g.neovim_mode == "skitty" and 2.5 or 30,
         -- max_height = 30,
         -- Apparently, all the images that you preview in neovim are converted
         -- to .png and they're cached, original image remains the same, but
