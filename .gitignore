@@ -1,3 +1,14 @@
+# nvim
+tt.*
+.tests
+doc/tags
+debug
+.repro
+foo.*
+*.log
+data
+
 Gentleman.Dots/
 gcloud/
 tmux/plugins
+.todo/
