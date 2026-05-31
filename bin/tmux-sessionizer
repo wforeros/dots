@@ -3,7 +3,7 @@
 if [[ $# -eq 1 ]]; then
 	selected_session=$1
 else
-	selected_session=$(fd -td -I --min-depth 1 '' ~/Documentos/dev | fzf)
+	selected_session=$(fd -td -I --min-depth 1 '' ~/documents/ | fzf)
 fi
 
 if [[ -z $selected_session ]]; then
@@ -11,7 +11,6 @@ if [[ -z $selected_session ]]; then
 fi
 
 selected_name=$(basename "$selected_session" | tr . _)
-selected_name=${selected_name:0:8}
 tmux_running=$(pgrep tmux)
 
 if [[ -z $TMUX ]]; then
