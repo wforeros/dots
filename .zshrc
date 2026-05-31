@@ -157,15 +157,25 @@ alias tt="$HOME/dots/bin/tmux-templates"
 alias tks="$HOME/dots/bin/tmux-kill-session.sh"
 
 # Git
-alias lg="lazygit"
 source "$HOME/dots/bin/worktree"
 source "$HOME/dots/bin/worktrunk.sh"
 
+alias lg="lazygit"
 alias lzd="lazydocker"
+alias lsql="lazysql"
 
 # Otros
 mkcd() {
     mkdir -p "$1" && cd "$1"
+}
+
+# Yazi
+function y() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+  command yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+  rm -f -- "$tmp"
 }
 
 # Amazon Q post block. Keep at the bottom of this file.
@@ -268,3 +278,10 @@ if (( $+functions[fzf-history-widget] )); then
 fi
 
 if command -v wt >/dev/null 2>&1; then eval "$(command wt config shell init zsh)"; fi
+
+# opencode
+export PATH=/home/wforeros/.opencode/bin:$PATH
+
+# Created by `pipx` on 2026-05-31 18:44:22
+export PATH="$PATH:/home/wforeros/.local/bin"
+export PATH="$HOME/.cargo/bin:$PATH"
