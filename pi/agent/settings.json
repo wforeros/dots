@@ -1,0 +1,13 @@
+{
+  "lastChangelogVersion": "1.4.0",
+  "defaultProvider": "opencode-go",
+  "defaultModel": "deepseek-v4.1-flash",
+  "packages": [
+    "npm:pi-web-access",
+    "npm:@dietrichgebert/ponytail",
+    "npm:pi-subagents",
+    "npm:@juicesharp/rpiv-todo",
+    "npm:pi-calm",
+    "npm:@narumitw/pi-usage"
+  ]
+}

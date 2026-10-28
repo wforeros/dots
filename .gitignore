@@ -12,3 +12,20 @@ Gentleman.Dots/
 gcloud/
 tmux/plugins
 .todo/
+
+# pi agent (installed binaries, deps and machine state)
+pi/agent/install/
+pi/agent/npm/
+pi/agent/bin/
+pi/agent/sessions/
+pi/agent/auth.json
+pi/agent/models-store.json
+
+# skill de terceros (20M, se reinstala con su propio instalador)
+pi/agent/skills/impeccable/
+
+# estado en runtime y archivos gestionados por otras herramientas
+pi/agent/calm
+pi/agent/extensions/herdr-agent-state.ts
+pi/agent/pi-subagents/
+pi/agent/pi-web-access/
