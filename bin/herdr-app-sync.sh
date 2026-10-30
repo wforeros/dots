@@ -14,7 +14,12 @@ WIN="${HERDR_APP_WIN:-/mnt/c/Users/PC/.config/herdr-app}"
 src=$DOTS dst=$WIN label="repo -> app"
 if [ "${1:-}" = "--pull" ]; then src=$WIN dst=$DOTS label="app -> repo"; fi
 
+# Mods and layouts Herdr owns are named in installed.json. Theme files aren't
+# listed there, so the ones it installs are named here.
 shipped=$(jq -r 'keys[] | sub("^layout:"; "")' "$WIN/installed.json")
+shipped="$shipped
+win98
+atom-one-dark"
 
 # Only what the person writes; Herdr's own state (view, shared, installed...) stays put.
 list() {
@@ -30,6 +35,7 @@ while IFS= read -r rel; do
   case "$rel" in
     layouts/*.json) name=${rel#layouts/}; name=${name%.json} ;;
     mods/*/*)       name=${rel#mods/}; name=${name%%/*} ;;
+    themes/*.json)  name=${rel#themes/}; name=${name%.json} ;;
     *)              name="" ;;
   esac
   [ -n "$name" ] && printf '%s\n' "$shipped" | grep -qxF "$name" && continue
