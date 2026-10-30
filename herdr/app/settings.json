@@ -4,5 +4,6 @@
     "enabled": true
   },
   "minimum_contrast": 1.0,
-  "appearance": "dark"
+  "appearance": "dark",
+  "theme": "catppuccin"
 }

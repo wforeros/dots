@@ -30,6 +30,10 @@ const BINDINGS = [
   ["w", "Go to space or tab", "mod.open", { name: "picker" }],
   ["J", "Next space", "space.next", {}, true],
   ["K", "Previous space", "space.prev", {}, true],
+  // The TUI's [[keys.command]] panes (lazygit, hunk diff). Absolute paths: the
+  // core on wsl starts with a minimal PATH that has no linuxbrew.
+  ["G", "lazygit", "pane.split", { direction: "right", argv: ["/home/linuxbrew/.linuxbrew/bin/lazygit"] }],
+  ["H", "hunk diff", "pane.split", { direction: "right", argv: ["/home/linuxbrew/.linuxbrew/bin/hunk", "diff"] }],
   ["z", "Zoom pane", "pane.zoom"],
   ["d", "Minimize window", "window.minimize"],
   ...Array.from({ length: 10 }, (_, i) => [String(i), `Tab ${i === 0 ? 10 : i}`, "tab.select", { index: i === 0 ? 10 : i }]),

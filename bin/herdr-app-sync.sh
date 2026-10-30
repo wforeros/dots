@@ -20,7 +20,7 @@ shipped=$(jq -r 'keys[] | sub("^layout:"; "")' "$WIN/installed.json")
 list() {
   cd "$1"
   for f in settings.json keys.json; do [ -f "$f" ] && echo "$f"; done
-  find layouts mods -maxdepth 3 -type f \
+  find layouts mods themes -maxdepth 3 -type f \
     ! -name 'jsconfig.json' ! -name '*.d.ts' ! -name '*.error' \
     ! -name '*.svg' ! -name '*.md' 2>/dev/null
 }
