@@ -7,8 +7,8 @@ import { closeOverlay, focused, hc, nextCommand, props, run, theme } from "herdr
 const REPEAT_MS = 500;
 const BINDINGS = [
   ["c", "New tab", "tab.new"],
-  ["%", "Split right", "pane.split", { direction: "right" }],
-  ['"', "Split down", "pane.split", { direction: "down" }],
+  ["v", "Split right", "pane.split", { direction: "right" }],
+  ["-", "Split down", "pane.split", { direction: "down" }],
   ["x", "Close pane", "pane.close"],
   ["n", "Next tab", "tab.next"],
   ["p", "Previous tab", "tab.prev"],
