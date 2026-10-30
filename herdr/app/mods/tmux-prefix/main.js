@@ -3,7 +3,7 @@ import { v_flex, h_flex } from "gpui-base";
 import { closeOverlay, focused, hc, nextCommand, props, run, theme } from "herdr";
 
 // Edit these two things to make the example yours. Only repeatable actions
-// start a timer: the first key after Ctrl+B can take as long as you like.
+// start a timer: the first key after Ctrl+A can take as long as you like.
 const REPEAT_MS = 500;
 const BINDINGS = [
   ["c", "New tab", "tab.new"],
@@ -69,14 +69,14 @@ export default class TmuxPrefix extends View {
   }
 
   sendPrefix(cx) {
-    this.send("ctrl+b", cx);
+    this.send("ctrl+a", cx);
   }
 
   key(e, cx) {
     cx.stop_propagation();
     const m = e.modifiers;
     if (e.key === "escape") return this.dismiss();
-    if (m.control && e.key === "b") return this.sendPrefix(cx);
+    if (m.control && e.key === "a") return this.sendPrefix(cx);
     const plain = !m.control && !m.alt && !m.platform;
     const key = plain ? (e.key_char ?? (m.shift && e.key.length === 1 ? e.key.toUpperCase() : e.key)) : e.key;
     if (plain && key === "?") {
@@ -111,8 +111,8 @@ export default class TmuxPrefix extends View {
     return v_flex().id("tmux-prefix").track_focus(this.handle)
       .on_key_down((e, cx) => this.key(e, cx))
       .p(14).gap(8).bg(t.popover).text_color(t.foreground).text_size(12)
-      .child(h_flex().justify_between().child(div().font_semibold().child(this.repeat ? `Repeat · ${REPEAT_MS} ms` : "Ctrl+B · waiting for a key"))
-        .child(div().text_color(t.muted).child("Esc cancel · ^B send prefix")))
+      .child(h_flex().justify_between().child(div().font_semibold().child(this.repeat ? `Repeat · ${REPEAT_MS} ms` : "Ctrl+A · waiting for a key"))
+        .child(div().text_color(t.muted).child("Esc cancel · ^A send prefix")))
       .child(v_flex().h(280).min_h(0).overflow_y_scrollbar().children(rows.map(([key, label, , , repeatable]) =>
         h_flex().h(20).flex_none().items_center().gap(12).child(div().w(40).text_color(t.accent).child(key))
           .child(div().flex_1().child(label)).child(div().text_color(t.dim).child(repeatable ? "repeat" : "")))))
