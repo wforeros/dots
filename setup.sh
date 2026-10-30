@@ -20,3 +20,6 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 ln -s "$PWD/.zshrc" "$HOME/.zshrc"
 ln -s "$PWD/tmux/tmux.conf" "$HOME/.tmux.conf"
 ln -s "$PWD/.gitconfig" "$HOME/.gitconfig"
+
+# Herdr app (Windows): its config lives in herdr/app, deployed by bin/herdr-app-sync.sh
+[ -d "${HERDR_APP_WIN:-/mnt/c/Users/PC/.config/herdr-app}" ] && sh "$PWD/bin/herdr-app-sync.sh"
