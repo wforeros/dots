@@ -1,6 +1,6 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { closeOverlay, focused, hc, nextCommand, props, run, spaces, theme } from "herdr";
+import { closeOverlay, focused, hc, nextCommand, openOverlay, panes, props, run, spaces, theme } from "herdr";
 
 // Edit these two things to make the example yours. Only repeatable actions
 // start a timer: the first key after Ctrl+A can take as long as you like.
@@ -28,6 +28,15 @@ const BINDINGS = [
     return here.machine ? { machine: here.machine, folder: here.folder } : { folder: here.folder };
   }],
   ["w", "Go to space or tab", "mod.open", { name: "picker" }],
+  ["s", "Go to space or tab", "mod.open", { name: "picker" }],
+  ["b", "Toggle sidebar", "layout.toggle", { id: "sidebar" }],
+  [",", "Rename tab", "tab.rename", {}],
+  ["$", "Rename space", "space.rename", {}],
+  ["X", "Close tab", "tab.close"],
+  ["D", "Close space", "space.close"],
+  // The TUI's worktree keys. prefix+shift+g is lazygit here, as in the TUI's own config.
+  ["o", "Open worktree", () => worktree("open")],
+  ["g", "New worktree", () => worktree("new")],
   ["J", "Next space", "space.next", {}, true],
   ["K", "Previous space", "space.prev", {}, true],
   // The TUI's [[keys.command]] panes (lazygit, hunk diff). Absolute paths: the
@@ -45,6 +54,17 @@ function forwardKey(e, key) {
   if (/^[A-Z]$/.test(key)) return `shift+${key.toLowerCase()}`;
   if (key.length === 1 && "abcdefghijklmnopqrstuvwxyz0123456789`\\[],=-.';/".includes(key)) return key === "\\" ? "backslash" : key;
   return null;
+}
+
+// The worktree mod opens as a dialog with props, not as a command (see mods/menu).
+function worktree(action) {
+  openOverlay({
+    mod: "worktree",
+    kind: "dialog",
+    width: action === "open" ? 560 : 460,
+    height: action === "open" ? 480 : 280,
+    props: { space: spaces().find((s) => s.active)?.id, folder: panes().find((p) => p.focused)?.cwd, action },
+  });
 }
 
 export default class TmuxPrefix extends View {
@@ -106,7 +126,8 @@ export default class TmuxPrefix extends View {
     }
     const [, , command, args = {}, repeatable = false] = binding;
     if (!repeatable) this.dismiss();
-    run(command, typeof args === "function" ? args() : args);
+    if (typeof command === "function") command();
+    else run(command, typeof args === "function" ? args() : args);
     if (repeatable) {
       this.repeat = true;
       const generation = ++this.generation;
