@@ -20,6 +20,8 @@ const BINDINGS = [
   ["down", "Focus down", "pane.go", { direction: "down" }, true],
   ["up", "Focus up", "pane.go", { direction: "up" }, true],
   ["right", "Focus right", "pane.go", { direction: "right" }, true],
+  ["N", "New space", "space.new"],
+  ["w", "Go to space or tab", "mod.open", { name: "picker" }],
   ["J", "Next space", "space.next", {}, true],
   ["K", "Previous space", "space.prev", {}, true],
   ["z", "Zoom pane", "pane.zoom"],
