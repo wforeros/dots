@@ -1,6 +1,6 @@
 import { View, div } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { closeOverlay, focused, hc, nextCommand, props, run, theme } from "herdr";
+import { closeOverlay, focused, hc, nextCommand, props, run, spaces, theme } from "herdr";
 
 // Edit these two things to make the example yours. Only repeatable actions
 // start a timer: the first key after Ctrl+A can take as long as you like.
@@ -20,7 +20,13 @@ const BINDINGS = [
   ["down", "Focus down", "pane.go", { direction: "down" }, true],
   ["up", "Focus up", "pane.go", { direction: "up" }, true],
   ["right", "Focus right", "pane.go", { direction: "right" }, true],
-  ["N", "New space", "space.new"],
+  // A new space follows the space you are in: same machine (wsl, another host)
+  // and same folder, instead of landing on this computer.
+  ["N", "New space", "space.new", () => {
+    const here = spaces().find((s) => s.active);
+    if (!here) return {};
+    return here.machine ? { machine: here.machine, folder: here.folder } : { folder: here.folder };
+  }],
   ["w", "Go to space or tab", "mod.open", { name: "picker" }],
   ["J", "Next space", "space.next", {}, true],
   ["K", "Previous space", "space.prev", {}, true],
@@ -96,7 +102,7 @@ export default class TmuxPrefix extends View {
     }
     const [, , command, args = {}, repeatable = false] = binding;
     if (!repeatable) this.dismiss();
-    run(command, args);
+    run(command, typeof args === "function" ? args() : args);
     if (repeatable) {
       this.repeat = true;
       const generation = ++this.generation;
