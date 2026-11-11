@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# La sincronización va main -> reels, nunca al revés.
+set -euo pipefail
+reels_sha=$(git rev-parse -q --verify reels || true)
+if [ "$(git rev-parse --abbrev-ref HEAD)" = main ] && [ -n "$reels_sha" ] \
+   && grep -qF "$reels_sha" .git/MERGE_HEAD 2>/dev/null; then
+  echo "pre-merge-commit: no se mergea 'reels' en 'main'" >&2
+  exit 1
+fi

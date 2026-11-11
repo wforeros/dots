@@ -29,3 +29,12 @@ pi/agent/calm
 pi/agent/extensions/herdr-agent-state.ts
 pi/agent/pi-subagents/
 pi/agent/pi-web-access/
+
+# dependencias de las skills (se reinstalan con `npm install` en cada skill)
+pi/agent/skills/*/node_modules/
+
+# pi: runtime y bytecode (no versionar)
+__pycache__/
+*.pyc
+pi/agent/missions/
+pi/agent/pi-caffeinate.json
