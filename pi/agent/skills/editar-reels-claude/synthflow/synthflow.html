@@ -1,0 +1,2491 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SynthFlow Studio - Generador de Música Procedural y SFX</title>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        studio: {
+                            950: '#07080c',
+                            900: '#0d1017',
+                            800: '#161b26',
+                            700: '#22293a',
+                            accent: '#6366f1',
+                            neon: '#ec4899',
+                            cyan: '#06b6d4'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #07080c;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        /* Custom range sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #22293a;
+            border-radius: 999px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -5px;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: #818cf8;
+        }
+        /* Pad active glow */
+        .sfx-pad:active, .sfx-pad.pad-triggered {
+            transform: translateY(2px) scale(0.98);
+            border-color: #06b6d4 !important;
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.4), inset 0 0 15px rgba(6, 182, 212, 0.2);
+        }
+        .step-dot.active {
+            background-color: #ec4899;
+            box-shadow: 0 0 8px #ec4899;
+        }
+        @keyframes pulse-rec {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.1); }
+        }
+        .rec-dot {
+            animation: pulse-rec 1.2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <header class="border-b border-studio-700/80 bg-studio-900/90 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+            <!-- Brand Title -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-bold text-lg tracking-tight text-white">SynthFlow <span class="text-xs font-mono uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">WebAudio Engine</span></h1>
+                    </div>
+                    <p class="text-xs text-slate-400">Estudio Procedural Royalty-Free & Sintetizador SFX</p>
+                </div>
+            </div>
+
+            <!-- Master Volume & Recording / Export Controls -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Master Volume -->
+                <div class="hidden sm:flex items-center gap-2 bg-studio-800 px-3 py-1.5 rounded-lg border border-studio-700">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    </svg>
+                    <input id="masterVolume" type="range" min="0" max="1" step="0.01" value="0.8" class="w-20" title="Volumen Maestro">
+                </div>
+
+                <!-- Quick Live Format Selector -->
+                <div class="flex items-center bg-studio-800 rounded-lg p-1 border border-studio-700 text-xs font-mono">
+                    <button id="fmtWavBtn" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white font-semibold transition" title="Grabación en vivo en WAV (PCM 16-bit)">
+                        WAV
+                    </button>
+                    <button id="fmtVideoBtn" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition" title="Grabación en vivo de Vídeo del Canvas + Audio">
+                        MP4/Video
+                    </button>
+                </div>
+
+                <!-- Live Record Trigger -->
+                <button id="recordBtn" class="flex items-center gap-2 px-3.5 py-2 rounded-xl font-medium text-xs sm:text-sm bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/25 transition active:scale-95 border border-rose-400/30" title="Grabar sesión en tiempo real incluyendo SFX">
+                    <span id="recIndicator" class="w-2.5 h-2.5 rounded-full bg-white"></span>
+                    <span id="recordBtnText">Grabar en Vivo</span>
+                    <span id="recordTimer" class="hidden font-mono text-xs bg-black/30 px-1.5 py-0.5 rounded">00:00</span>
+                </button>
+
+                <!-- Open Advanced Export Studio Modal -->
+                <button id="openExportModalBtn" class="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white shadow-lg shadow-indigo-600/30 transition active:scale-95 border border-white/15">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    <span>Exportar Estudio...</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col gap-6">
+        
+        <!-- SECTION 3: REAL-TIME AUDIO VISUALIZER CANVAS -->
+        <section class="relative rounded-2xl overflow-hidden bg-studio-900 border border-studio-700 shadow-2xl">
+            <canvas id="visualizerCanvas" class="w-full h-56 sm:h-72 block"></canvas>
+
+            <!-- Top Overlay HUD -->
+            <div class="absolute top-3 left-4 right-4 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+                <div class="flex items-center gap-2 bg-studio-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 pointer-events-auto">
+                    <span id="engineStatusDot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+                    <span id="engineStatusText" class="text-xs font-mono text-slate-300">STANDBY</span>
+                    <span class="text-slate-600">|</span>
+                    <span id="hudGenre" class="text-xs font-mono text-indigo-400 font-semibold">LO-FI CHILL</span>
+                    <span class="text-slate-600">|</span>
+                    <span id="hudSeed" class="text-xs font-mono text-emerald-400">SEED #8492</span>
+                </div>
+
+                <!-- Visualizer Mode Switch -->
+                <div class="flex items-center gap-1 bg-studio-950/80 backdrop-blur-md p-1 rounded-lg border border-white/10 pointer-events-auto text-xs font-mono">
+                    <button data-vismode="combined" class="vis-mode-btn px-2.5 py-1 rounded bg-white/15 text-white transition">Híbrido</button>
+                    <button data-vismode="bars" class="vis-mode-btn px-2.5 py-1 rounded text-slate-400 hover:text-white transition">Espectro</button>
+                    <button data-vismode="wave" class="vis-mode-btn px-2.5 py-1 rounded text-slate-400 hover:text-white transition">Osciloscopio</button>
+                </div>
+            </div>
+
+            <!-- Bottom Sequencer 16-Step Indicator Overlay -->
+            <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between bg-studio-950/80 backdrop-blur-md px-3 py-2 rounded-xl border border-white/10">
+                <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider hidden sm:inline">Secuenciador (16 Pasos)</span>
+                <div id="stepDotsContainer" class="flex items-center justify-between flex-1 sm:flex-none sm:w-96 gap-1.5">
+                    <!-- Dynamically populated 16 step dots -->
+                </div>
+                <span id="currentChordLabel" class="text-xs font-mono text-cyan-400 font-semibold min-w-[75px] text-right">ACORDE: --</span>
+            </div>
+        </section>
+
+        <!-- TWO MAIN INTERACTIVE SECTIONS: 1. PISTAS & 2. BOTONERA SFX -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- SECTION 1: PISTAS PROCEDURALES -->
+            <section class="lg:col-span-6 bg-studio-900 border border-studio-700 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex items-center justify-between border-b border-studio-800 pb-4 mb-5">
+                        <div>
+                            <span class="text-[11px] font-mono uppercase tracking-widest text-indigo-400 font-semibold">Sección 01</span>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                Generador de Pistas Procedurales
+                            </h2>
+                        </div>
+                        <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full font-mono">
+                            100% Sin Copyright
+                        </span>
+                    </div>
+
+                    <!-- Genre Selector Cards -->
+                    <label class="block text-xs font-mono uppercase text-slate-400 mb-2.5">Selecciona el Género Musical:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                        <!-- Lo-Fi Option -->
+                        <button id="genreLofiBtn" class="genre-card group text-left p-4 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 transition relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-white text-base">☕ Lo-Fi Beats</span>
+                                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200">78 BPM</span>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed">Acordes séptima cálidos, piano eléctrico detuned, swing relajado y crepitar de vinilo procedural.</p>
+                        </button>
+
+                        <!-- Synthwave Option -->
+                        <button id="genreSynthBtn" class="genre-card group text-left p-4 rounded-xl border-2 border-studio-700 bg-studio-800/60 hover:border-pink-500/50 transition relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-white text-base">🌆 Synthwave 80s</span>
+                                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-pink-500/20 text-pink-300">118 BPM</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed">Bajo analógico octavado, arpegios brillantes con diente de sierra y caja gated-reverb.</p>
+                        </button>
+                    </div>
+
+                    <!-- Primary Transport: Play/Stop & Regenerate Seed -->
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 mb-6">
+                        <button id="playTrackBtn" class="flex-1 py-3.5 px-5 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2.5 transition active:scale-98">
+                            <svg id="playIcon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span id="playTrackText">Reproducir Pista</span>
+                        </button>
+
+                        <button id="regenerateBtn" class="w-full sm:w-auto py-3.5 px-5 rounded-xl font-semibold text-sm bg-studio-800 hover:bg-studio-700 text-slate-200 border border-studio-700 flex items-center justify-center gap-2 transition active:scale-95" title="Generar nueva progresión armónica, melodía y patrón de batería">
+                            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Regenerar Semilla</span>
+                        </button>
+                    </div>
+
+                    <!-- Procedural Parameters & Layer Toggles -->
+                    <div class="bg-studio-950/70 rounded-xl p-4 border border-studio-800 space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Tempo Slider -->
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-1.5">
+                                    <span class="text-slate-400">TEMPO (BPM)</span>
+                                    <span id="bpmValueLabel" class="text-indigo-400 font-bold">78 BPM</span>
+                                </div>
+                                <input id="bpmSlider" type="range" min="60" max="145" value="78" class="w-full">
+                            </div>
+
+                            <!-- Lowpass Filter Cutoff -->
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-1.5">
+                                    <span class="text-slate-400">FILTRO PASO BAJO (CUTOFF)</span>
+                                    <span id="cutoffValueLabel" class="text-cyan-400 font-bold">3200 Hz</span>
+                                </div>
+                                <input id="cutoffSlider" type="range" min="400" max="12000" step="50" value="3200" class="w-full">
+                            </div>
+
+                            <!-- Analog Tape Wobble / Warmth -->
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-1.5">
+                                    <span class="text-slate-400">CARÁCTER ANALÓGICO (DETUNE)</span>
+                                    <span id="wobbleValueLabel" class="text-pink-400 font-bold">35%</span>
+                                </div>
+                                <input id="wobbleSlider" type="range" min="0" max="100" step="5" value="35" class="w-full">
+                            </div>
+
+                            <!-- Musical Mood / Scale Transpose -->
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-1.5">
+                                    <span class="text-slate-400">TONALIDAD / MODO</span>
+                                    <span id="transposeValueLabel" class="text-emerald-400 font-bold">0 ST (Original)</span>
+                                </div>
+                                <input id="transposeSlider" type="range" min="-5" max="7" step="1" value="0" class="w-full">
+                            </div>
+                        </div>
+
+                        <!-- Instrument Stems Mute/Enable -->
+                        <div class="pt-2 border-t border-studio-800 flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-mono text-slate-400">CAPAS ACTIVAS:</span>
+                            <div class="flex flex-wrap gap-2">
+                                <button data-stem="drums" class="stem-btn px-2.5 py-1 rounded-lg text-xs font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition">🥁 Batería ON</button>
+                                <button data-stem="bass" class="stem-btn px-2.5 py-1 rounded-lg text-xs font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition">🎸 Bajo ON</button>
+                                <button data-stem="chords" class="stem-btn px-2.5 py-1 rounded-lg text-xs font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition">🎹 Acordes ON</button>
+                                <button data-stem="lead" class="stem-btn px-2.5 py-1 rounded-lg text-xs font-mono bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 transition">✨ Melodía ON</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Procedural DNA Info Footer -->
+                <div class="mt-4 pt-3 border-t border-studio-800 flex items-center justify-between text-xs text-slate-400 font-mono">
+                    <span id="scaleInfoText">Escala: Do Menor Dórica</span>
+                    <span id="VinylStatusText">Textura Analógica: Activa</span>
+                </div>
+            </section>
+
+            <!-- SECTION 2: BOTONERA SFX SINTETIZADOS AL VUELO -->
+            <section class="lg:col-span-6 bg-studio-900 border border-studio-700 rounded-2xl p-5 flex flex-col justify-between shadow-xl">
+                <div>
+                    <div class="flex items-center justify-between border-b border-studio-800 pb-4 mb-5">
+                        <div>
+                            <span class="text-[11px] font-mono uppercase tracking-widest text-cyan-400 font-semibold">Sección 02</span>
+                            <h2 class="text-lg font-bold text-white">Botonera SFX en Tiempo Real</h2>
+                        </div>
+                        <span class="text-xs font-mono text-slate-400 bg-studio-800 px-2.5 py-1 rounded-lg border border-studio-700">
+                            Atajos: Teclas [1 - 6]
+                        </span>
+                    </div>
+
+                    <!-- Global SFX Modifiers -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-studio-950/70 p-3.5 rounded-xl border border-studio-800 mb-5">
+                        <div>
+                            <div class="flex justify-between text-xs font-mono mb-1">
+                                <span class="text-slate-400">TONO / PITCH SFX</span>
+                                <span id="sfxPitchLabel" class="text-cyan-400 font-bold">1.00x</span>
+                            </div>
+                            <input id="sfxPitchSlider" type="range" min="0.5" max="1.8" step="0.05" value="1.0" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs font-mono mb-1">
+                                <span class="text-slate-400">ESPACIO / REVERB SFX</span>
+                                <span id="sfxSpaceLabel" class="text-pink-400 font-bold">35%</span>
+                            </div>
+                            <input id="sfxSpaceSlider" type="range" min="0" max="0.9" step="0.05" value="0.35" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- 6 Interactive Synthesized SFX Pads -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                        
+                        <!-- Pad 1: Whoosh -->
+                        <div data-sfx="whoosh" role="button" tabindex="0" class="sfx-pad cursor-pointer group bg-studio-800/90 hover:bg-studio-800 border-2 border-studio-700 rounded-xl p-4 text-left transition flex flex-col justify-between h-28 relative overflow-hidden">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-xl">💨</span>
+                                <div class="flex items-center gap-1">
+                                    <button data-dl-sfx="whoosh" class="sfx-dl-btn text-[10px] font-mono bg-studio-950/90 hover:bg-cyan-500 hover:text-studio-950 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-500/30 transition" title="Descargar este SFX en WAV">⬇ WAV</button>
+                                    <kbd class="text-[10px] font-mono bg-studio-950 text-slate-400 px-1.5 py-0.5 rounded border border-studio-700">[1]</kbd>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white group-hover:text-cyan-300 transition">Whoosh Aéreo</div>
+                                <div class="text-[11px] text-slate-400 font-mono">Barrido Bandpass + Pan</div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 2: Cinematic Impact -->
+                        <div data-sfx="impact" role="button" tabindex="0" class="sfx-pad cursor-pointer group bg-studio-800/90 hover:bg-studio-800 border-2 border-studio-700 rounded-xl p-4 text-left transition flex flex-col justify-between h-28 relative overflow-hidden">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-xl">💥</span>
+                                <div class="flex items-center gap-1">
+                                    <button data-dl-sfx="impact" class="sfx-dl-btn text-[10px] font-mono bg-studio-950/90 hover:bg-rose-500 hover:text-white text-rose-400 px-1.5 py-0.5 rounded border border-rose-500/30 transition" title="Descargar este SFX en WAV">⬇ WAV</button>
+                                    <kbd class="text-[10px] font-mono bg-studio-950 text-slate-400 px-1.5 py-0.5 rounded border border-studio-700">[2]</kbd>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white group-hover:text-rose-300 transition">Cinematic Impact</div>
+                                <div class="text-[11px] text-slate-400 font-mono">Sub-Drop + Boom Tail</div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 3: Tension Riser -->
+                        <div data-sfx="riser" role="button" tabindex="0" class="sfx-pad cursor-pointer group bg-studio-800/90 hover:bg-studio-800 border-2 border-studio-700 rounded-xl p-4 text-left transition flex flex-col justify-between h-28 relative overflow-hidden">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-xl">🚀</span>
+                                <div class="flex items-center gap-1">
+                                    <button data-dl-sfx="riser" class="sfx-dl-btn text-[10px] font-mono bg-studio-950/90 hover:bg-purple-500 hover:text-white text-purple-400 px-1.5 py-0.5 rounded border border-purple-500/30 transition" title="Descargar este SFX en WAV">⬇ WAV</button>
+                                    <kbd class="text-[10px] font-mono bg-studio-950 text-slate-400 px-1.5 py-0.5 rounded border border-studio-700">[3]</kbd>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white group-hover:text-purple-300 transition">Tension Riser</div>
+                                <div class="text-[11px] text-slate-400 font-mono">Subida FM + Filtro Q</div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 4: UI Clicks -->
+                        <div data-sfx="uiclick" role="button" tabindex="0" class="sfx-pad cursor-pointer group bg-studio-800/90 hover:bg-studio-800 border-2 border-studio-700 rounded-xl p-4 text-left transition flex flex-col justify-between h-28 relative overflow-hidden">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-xl">🖱️</span>
+                                <div class="flex items-center gap-1">
+                                    <button data-dl-sfx="uiclick" class="sfx-dl-btn text-[10px] font-mono bg-studio-950/90 hover:bg-emerald-500 hover:text-studio-950 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30 transition" title="Descargar este SFX en WAV">⬇ WAV</button>
+                                    <kbd class="text-[10px] font-mono bg-studio-950 text-slate-400 px-1.5 py-0.5 rounded border border-studio-700">[4]</kbd>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white group-hover:text-emerald-300 transition">UI Click Cristal</div>
+                                <div class="text-[11px] text-slate-400 font-mono">Doble Pulso Transiente</div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 5: Cyber Glitch -->
+                        <div data-sfx="glitch" role="button" tabindex="0" class="sfx-pad cursor-pointer group bg-studio-800/90 hover:bg-studio-800 border-2 border-studio-700 rounded-xl p-4 text-left transition flex flex-col justify-between h-28 relative overflow-hidden">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-xl">⚡</span>
+                                <div class="flex items-center gap-1">
+                                    <button data-dl-sfx="glitch" class="sfx-dl-btn text-[10px] font-mono bg-studio-950/90 hover:bg-amber-500 hover:text-studio-950 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30 transition" title="Descargar este SFX en WAV">⬇ WAV</button>
+                                    <kbd class="text-[10px] font-mono bg-studio-950 text-slate-400 px-1.5 py-0.5 rounded border border-studio-700">[5]</kbd>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white group-hover:text-amber-300 transition">Data Glitch</div>
+                                <div class="text-[11px] text-slate-400 font-mono">Ráfaga Modulada Aleatoria</div>
+                            </div>
+                        </div>
+
+                        <!-- Pad 6: Sub Braaam -->
+                        <div data-sfx="braaam" role="button" tabindex="0" class="sfx-pad cursor-pointer group bg-studio-800/90 hover:bg-studio-800 border-2 border-studio-700 rounded-xl p-4 text-left transition flex flex-col justify-between h-28 relative overflow-hidden">
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-xl">📯</span>
+                                <div class="flex items-center gap-1">
+                                    <button data-dl-sfx="braaam" class="sfx-dl-btn text-[10px] font-mono bg-studio-950/90 hover:bg-indigo-500 hover:text-white text-indigo-400 px-1.5 py-0.5 rounded border border-indigo-500/30 transition" title="Descargar este SFX en WAV">⬇ WAV</button>
+                                    <kbd class="text-[10px] font-mono bg-studio-950 text-slate-400 px-1.5 py-0.5 rounded border border-studio-700">[6]</kbd>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sm text-white group-hover:text-indigo-300 transition">Sci-Fi Braaam</div>
+                                <div class="text-[11px] text-slate-400 font-mono">Metal Detuned Saw</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Last Triggered SFX Log -->
+                <div class="mt-4 pt-3 border-t border-studio-800 flex items-center justify-between text-xs text-slate-400 font-mono">
+                    <span id="lastSfxText">Último SFX: Ninguno disparado</span>
+                    <span class="text-cyan-400">Síntesis 100% Matemática</span>
+                </div>
+            </section>
+        </div>
+
+        <!-- Export / Download Notification Toast -->
+        <div id="exportToast" class="hidden fixed bottom-5 right-5 z-50 bg-studio-800 border border-indigo-500/50 text-white px-5 py-4 rounded-2xl shadow-2xl flex items-center gap-4 max-w-md">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h4 id="toastTitle" class="font-bold text-sm text-white">Archivo Exportado</h4>
+                <p id="toastMessage" class="text-xs text-slate-300 mt-0.5">Tu grabación se ha descargado automáticamente.</p>
+            </div>
+            <button id="closeToastBtn" class="text-slate-400 hover:text-white text-lg font-bold px-2">&times;</button>
+        </div>
+
+        <!-- ADVANCED EXPORT STUDIO MODAL -->
+        <div id="exportModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div class="bg-studio-900 border border-studio-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative my-8">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between border-b border-studio-800 pb-4 mb-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Estudio de Exportación y Renderizado</h3>
+                            <p class="text-xs text-slate-400">Descarga tu composición en múltiples formatos, duraciones exactas o pistas separadas (Stems)</p>
+                        </div>
+                    </div>
+                    <button id="closeExportModalBtn" class="text-slate-400 hover:text-white text-2xl leading-none px-2">&times;</button>
+                </div>
+
+                <!-- Step 1: Format Selection -->
+                <div class="mb-5">
+                    <label class="block text-xs font-mono uppercase text-slate-400 mb-2">1. Formato de Archivo y Calidad</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button data-exp-fmt="wav16" class="exp-fmt-card text-left p-3 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-white">WAV Estándar (16-bit PCM)</span>
+                                <span class="text-[10px] font-mono bg-indigo-500/30 text-indigo-200 px-2 py-0.5 rounded">Instantáneo</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Calidad CD sin pérdidas (44.1 kHz). Renderizado offline ultrarrápido.</p>
+                        </button>
+
+                        <button data-exp-fmt="wav24" class="exp-fmt-card text-left p-3 rounded-xl border-2 border-studio-700 bg-studio-800/60 hover:border-indigo-500/40 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-white">WAV Studio Master (24-bit)</span>
+                                <span class="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">Hi-Res 48kHz</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Máximo rango dinámico para producción profesional de vídeo o juegos.</p>
+                        </button>
+
+                        <button data-exp-fmt="compressed" class="exp-fmt-card text-left p-3 rounded-xl border-2 border-studio-700 bg-studio-800/60 hover:border-indigo-500/40 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-white">Audio Ligero (OGG / WebM / M4A)</span>
+                                <span class="text-[10px] font-mono bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded">Comprimido</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Archivo ligero ideal para compartir en web, podcasts o mensajería.</p>
+                        </button>
+
+                        <button data-exp-fmt="video" class="exp-fmt-card text-left p-3 rounded-xl border-2 border-studio-700 bg-studio-800/60 hover:border-indigo-500/40 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-white">Vídeo + Audio (MP4 / WebM)</span>
+                                <span class="text-[10px] font-mono bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded">Canvas 60fps</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Captura el visualizador reactivo junto con la mezcla maestra de audio.</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Duration & Loop Mode -->
+                <div class="mb-5">
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-mono uppercase text-slate-400">2. Duración de la Pista</label>
+                        <span id="computedDurationBadge" class="text-xs font-mono text-indigo-400 font-semibold">Duración estimada: 30.0 seg</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                        <button data-dur-preset="15" class="dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border border-studio-700 bg-studio-800 text-slate-300 hover:text-white transition">⏱️ 15 Seg (Corto)</button>
+                        <button data-dur-preset="30" class="dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border-2 border-indigo-500 bg-indigo-500/20 text-white font-semibold transition">⏱️ 30 Seg (Reel/Short)</button>
+                        <button data-dur-preset="60" class="dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border border-studio-700 bg-studio-800 text-slate-300 hover:text-white transition">⏱️ 1 Minuto</button>
+                        <button data-dur-preset="120" class="dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border border-studio-700 bg-studio-800 text-slate-300 hover:text-white transition">⏱️ 2 Minutos</button>
+                    </div>
+
+                    <!-- Seamless Bars Loop Option -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <button data-dur-bars="4" class="dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border border-studio-700 bg-studio-800/60 text-cyan-300 hover:border-cyan-500/40 transition">🔁 4 Compases (Loop)</button>
+                        <button data-dur-bars="8" class="dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border border-studio-700 bg-studio-800/60 text-cyan-300 hover:border-cyan-500/40 transition">🔁 8 Compases (Loop)</button>
+                        <button data-dur-bars="16" class="dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border border-studio-700 bg-studio-800/60 text-cyan-300 hover:border-cyan-500/40 transition">🔁 16 Compases (Loop)</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Mastering & Multi-Track Stems -->
+                <div class="bg-studio-950/80 border border-studio-800 rounded-xl p-4 mb-6 space-y-3">
+                    <label class="block text-xs font-mono uppercase text-slate-400">3. Opciones de Masterización y Stems</label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center gap-2.5 text-xs text-slate-200 cursor-pointer select-none">
+                            <input id="expFadeCheck" type="checkbox" class="w-4 h-4 rounded accent-indigo-500">
+                            <span>Aplicar <strong>Fade-In y Fade-Out</strong> suave (2s)</span>
+                        </label>
+
+                        <label class="flex items-center gap-2.5 text-xs text-slate-200 cursor-pointer select-none">
+                            <input id="expNormalizeCheck" type="checkbox" checked class="w-4 h-4 rounded accent-indigo-500">
+                            <span><strong>Normalizar Pico</strong> (-0.5 dB Master)</span>
+                        </label>
+
+                        <label class="flex items-center gap-2.5 text-xs text-slate-200 cursor-pointer select-none sm:col-span-2 pt-1 border-t border-studio-800">
+                            <input id="expStemsCheck" type="checkbox" class="w-4 h-4 rounded accent-pink-500">
+                            <span>🎛️ <strong>Exportar por Pistas Separadas (4 Stems WAV):</strong> Descarga archivos independientes para <em>Batería, Bajo, Acordes y Melodía</em> (ideal para mezclar en DAW).</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Render Progress Bar (Hidden until active) -->
+                <div id="exportProgressBox" class="hidden mb-5 bg-studio-950 p-3.5 rounded-xl border border-indigo-500/40">
+                    <div class="flex justify-between text-xs font-mono mb-1.5">
+                        <span id="exportProgressText" class="text-indigo-300">Sintetizando pista procedural...</span>
+                        <span id="exportProgressPct" class="text-white font-bold">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-studio-800 rounded-full overflow-hidden">
+                        <div id="exportProgressBar" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-0 transition-all duration-150"></div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer Actions -->
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <span class="text-[11px] font-mono text-slate-400">Semilla actual: <strong id="modalSeedLabel" class="text-emerald-400">#8492</strong></span>
+                    <div class="flex items-center gap-3">
+                        <button id="cancelExportModalBtn" class="px-4 py-2.5 rounded-xl text-xs font-mono text-slate-300 hover:text-white bg-studio-800 border border-studio-700 transition">
+                            Cancelar
+                        </button>
+                        <button id="startCustomExportBtn" class="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            <span id="startCustomExportText">Renderizar y Descargar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /**
+         * SYNTHFLOW STUDIO - PROCEDURAL MUSIC & SFX ENGINE
+         * 100% Pure Web Audio API synthesis (zero external samples).
+         */
+
+        // --- APPLICATION STATE ---
+        const state = {
+            isPlaying: false,
+            genre: 'lofi', // 'lofi' | 'synthwave'
+            bpm: 78,
+            cutoff: 3200,
+            wobble: 35, // Analog detune/warmth percentage
+            transpose: 0, // Semitone shift (-5 to +7)
+            masterVol: 0.8,
+            seed: 8492,
+            currentStep: 0,
+            stepTimerId: null,
+            visMode: 'combined', // 'combined' | 'bars' | 'wave'
+            exportFormat: 'wav', // 'wav' | 'video'
+            isRecording: false,
+            recStartTime: 0,
+            recIntervalId: null,
+            sfxPitch: 1.0,
+            sfxSpace: 0.35,
+            stems: {
+                drums: true,
+                bass: true,
+                chords: true,
+                lead: true
+            },
+            // Custom Studio Export Modal settings
+            customExport: {
+                format: 'wav16', // 'wav16' | 'wav24' | 'compressed' | 'video'
+                durationMode: 'seconds', // 'seconds' | 'bars'
+                seconds: 30,
+                bars: 8,
+                fadeInOut: false,
+                normalize: true,
+                exportStems: false,
+                isRendering: false
+            },
+            // Visual reactive bursts when SFX are triggered
+            visualBursts: [],
+            activeChordName: '--',
+            // Procedural pattern generated by seed
+            pattern: {
+                progression: [],
+                leadMelody: [],
+                kickPattern: [],
+                snarePattern: [],
+                hatPattern: []
+            }
+        };
+
+        // --- WEB AUDIO GRAPH NODES ---
+        let audioCtx = null;
+        let masterGain = null;
+        let masterFilter = null;
+        let compressor = null;
+        let analyser = null;
+        let reverbNode = null;
+        let reverbWetGain = null;
+        let mediaStreamDest = null;
+        let noiseBuffer = null;
+        let vinylNode = null;
+        let vinylGain = null;
+
+        // Recording buffers for lossless WAV & MediaRecorder for MP4/WebM
+        let wavRecorderNode = null;
+        let recordedLeft = [];
+        let recordedRight = [];
+        let mediaRecorder = null;
+        let recordedVideoChunks = [];
+
+        // --- PSEUDO-RANDOM GENERATOR FOR DETERMINISTIC SEEDS ---
+        function mulberry32(a) {
+            return function() {
+                let t = a += 0x6D2B79F5;
+                t = Math.imul(t ^ t >>> 15, t | 1);
+                t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        function midiToFreq(midi) {
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        }
+
+        function initAudioEngine() {
+            if (audioCtx) {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                return;
+            }
+
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContextClass();
+
+            // Master Filter (Controlled by UI Cutoff Slider)
+            masterFilter = audioCtx.createBiquadFilter();
+            masterFilter.type = 'lowpass';
+            masterFilter.frequency.setValueAtTime(state.cutoff, audioCtx.currentTime);
+            masterFilter.Q.setValueAtTime(1.2, audioCtx.currentTime);
+
+            // Master Compressor / Limiter to prevent clipping when combining Track + SFX
+            compressor = audioCtx.createDynamicsCompressor();
+            compressor.threshold.setValueAtTime(-14, audioCtx.currentTime);
+            compressor.knee.setValueAtTime(18, audioCtx.currentTime);
+            compressor.ratio.setValueAtTime(6, audioCtx.currentTime);
+            compressor.attack.setValueAtTime(0.005, audioCtx.currentTime);
+            compressor.release.setValueAtTime(0.18, audioCtx.currentTime);
+
+            // Master Volume
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(state.masterVol, audioCtx.currentTime);
+
+            // Analyser for Canvas Visualizer
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 1024;
+            analyser.smoothingTimeConstant = 0.82;
+
+            // Synthetic Algorithmic Impulse Response for Stereo Reverb
+            reverbNode = audioCtx.createConvolver();
+            reverbNode.buffer = createSyntheticImpulse(2.4, 2.8);
+            reverbWetGain = audioCtx.createGain();
+            reverbWetGain.gain.setValueAtTime(state.sfxSpace, audioCtx.currentTime);
+
+            // Create 3-second white noise buffer for drums, vinyl, and SFX sweeps
+            noiseBuffer = createWhiteNoiseBuffer(3.0);
+
+            // MediaStreamDestination for Video/Audio export
+            mediaStreamDest = audioCtx.createMediaStreamDestination();
+
+            // ScriptProcessor tap for direct 16-bit PCM WAV export
+            wavRecorderNode = audioCtx.createScriptProcessor(4096, 2, 2);
+            wavRecorderNode.onaudioprocess = (e) => {
+                if (!state.isRecording || state.exportFormat !== 'wav') return;
+                const left = e.inputBuffer.getChannelData(0);
+                const right = e.inputBuffer.getChannelData(1);
+                recordedLeft.push(new Float32Array(left));
+                recordedRight.push(new Float32Array(right));
+            };
+
+            // Connect Graph:
+            // Sources -> masterFilter -> compressor -> masterGain -> analyser -> destination + recorders
+            masterFilter.connect(compressor);
+            reverbNode.connect(reverbWetGain);
+            reverbWetGain.connect(compressor);
+
+            compressor.connect(masterGain);
+            masterGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            masterGain.connect(mediaStreamDest);
+            masterGain.connect(wavRecorderNode);
+            wavRecorderNode.connect(audioCtx.destination);
+
+            startVinylCrackles();
+        }
+
+        function createWhiteNoiseBuffer(durationSeconds) {
+            const sampleRate = audioCtx.sampleRate;
+            const bufferSize = sampleRate * durationSeconds;
+            const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            return buffer;
+        }
+
+        function createSyntheticImpulse(duration, decay) {
+            const sampleRate = audioCtx.sampleRate;
+            const length = sampleRate * duration;
+            const impulse = audioCtx.createBuffer(2, length, sampleRate);
+            for (let ch = 0; ch < 2; ch++) {
+                const channelData = impulse.getChannelData(ch);
+                for (let i = 0; i < length; i++) {
+                    channelData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+                }
+            }
+            return impulse;
+        }
+
+        function startVinylCrackles() {
+            if (!audioCtx || vinylNode) return;
+            const sampleRate = audioCtx.sampleRate;
+            const length = sampleRate * 4;
+            const buf = audioCtx.createBuffer(1, length, sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < length; i++) {
+                // Sparse pops & warm dust hiss
+                const pop = Math.random() > 0.9985 ? (Math.random() * 0.65 - 0.32) : 0;
+                const hiss = (Math.random() * 2 - 1) * 0.015;
+                data[i] = pop + hiss;
+            }
+            vinylNode = audioCtx.createBufferSource();
+            vinylNode.buffer = buf;
+            vinylNode.loop = true;
+
+            const bp = audioCtx.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.frequency.value = 1900;
+            bp.Q.value = 0.9;
+
+            vinylGain = audioCtx.createGain();
+            vinylGain.gain.value = (state.genre === 'lofi' && state.isPlaying) ? 0.14 : 0.0;
+
+            vinylNode.connect(bp);
+            bp.connect(vinylGain);
+            vinylGain.connect(masterFilter);
+            vinylNode.start();
+        }
+
+        function playProceduralBass(time, midiNote, duration, isSynthwave, targetCtx = audioCtx, destNode = masterFilter) {
+            const osc = targetCtx.createOscillator();
+            const sub = targetCtx.createOscillator();
+            const filter = targetCtx.createBiquadFilter();
+            const gain = targetCtx.createGain();
+
+            const freq = midiToFreq(midiNote + state.transpose);
+            osc.type = isSynthwave ? 'sawtooth' : 'triangle';
+            sub.type = 'sine';
+
+            osc.frequency.setValueAtTime(freq, time);
+            sub.frequency.setValueAtTime(freq * 0.5, time);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(isSynthwave ? 950 : 320, time);
+            if (isSynthwave) {
+                filter.frequency.exponentialRampToValueAtTime(190, time + duration * 0.85);
+            }
+
+            gain.gain.setValueAtTime(0.001, time);
+            gain.gain.linearRampToValueAtTime(isSynthwave ? 0.34 : 0.38, time + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+            osc.connect(filter);
+            sub.connect(filter);
+            filter.connect(gain);
+            gain.connect(destNode);
+
+            osc.start(time);
+            sub.start(time);
+            osc.stop(time + duration);
+            sub.stop(time + duration);
+        }
+
+        function playProceduralChord(time, midiNotes, duration, isSynthwave, targetCtx = audioCtx, destNode = masterFilter, revNode = reverbNode) {
+            const wobbleFactor = (state.wobble / 100) * 0.012;
+            midiNotes.forEach((note, idx) => {
+                const osc = targetCtx.createOscillator();
+                const osc2 = targetCtx.createOscillator();
+                const gain = targetCtx.createGain();
+
+                const freq = midiToFreq(note + state.transpose);
+                osc.type = isSynthwave ? 'sawtooth' : 'sine';
+                osc2.type = isSynthwave ? 'sawtooth' : 'triangle';
+
+                // Analog detune controlled by Wobble slider
+                osc.frequency.setValueAtTime(freq, time);
+                osc2.frequency.setValueAtTime(freq * (1 + (isSynthwave ? 0.004 : 0.002) + wobbleFactor), time);
+
+                const voiceAmp = isSynthwave ? 0.055 : 0.075;
+                gain.gain.setValueAtTime(0.001, time);
+                gain.gain.linearRampToValueAtTime(voiceAmp, time + (0.04 + idx * 0.015));
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+                osc.connect(gain);
+                osc2.connect(gain);
+                gain.connect(destNode);
+                if (revNode) gain.connect(revNode);
+
+                osc.start(time);
+                osc2.start(time);
+                osc.stop(time + duration);
+                osc2.stop(time + duration);
+            });
+        }
+
+        function playProceduralLead(time, midiNote, duration, isSynthwave, targetCtx = audioCtx, destNode = masterFilter, revNode = reverbNode) {
+            const osc = targetCtx.createOscillator();
+            const gain = targetCtx.createGain();
+
+            osc.type = isSynthwave ? 'sawtooth' : 'sine';
+            osc.frequency.setValueAtTime(midiToFreq(midiNote + state.transpose), time);
+            if (state.wobble > 0) {
+                osc.detune.setValueAtTime((state.wobble / 100) * 14, time);
+            }
+
+            gain.gain.setValueAtTime(0.001, time);
+            gain.gain.linearRampToValueAtTime(isSynthwave ? 0.11 : 0.14, time + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+            osc.connect(gain);
+            gain.connect(destNode);
+            if (revNode) gain.connect(revNode);
+
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        // Batería en directo (botón Reproducir y exportación comprimida): restaurada del original
+        function playProceduralKick(time, isSynthwave) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+
+            const startFreq = isSynthwave ? 160 : 120;
+            const endFreq = isSynthwave ? 42 : 48;
+            const dur = isSynthwave ? 0.32 : 0.25;
+
+            osc.frequency.setValueAtTime(startFreq, time);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, time + 0.08);
+            osc.frequency.exponentialRampToValueAtTime(30, time + dur);
+
+            gain.gain.setValueAtTime(0.85, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+            osc.connect(gain);
+            gain.connect(masterFilter);
+            osc.start(time);
+            osc.stop(time + dur);
+        }
+
+        function playProceduralSnare(time, isSynthwave) {
+            // Tonal body
+            const osc = audioCtx.createOscillator();
+            const oscGain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(isSynthwave ? 210 : 175, time);
+            osc.frequency.exponentialRampToValueAtTime(95, time + 0.1);
+
+            oscGain.gain.setValueAtTime(0.4, time);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
+
+            osc.connect(oscGain);
+            oscGain.connect(masterFilter);
+            osc.start(time);
+            osc.stop(time + 0.15);
+
+            // Snare wires / Gated 80s Noise
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = noiseBuffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = isSynthwave ? 'bandpass' : 'highpass';
+            filter.frequency.setValueAtTime(isSynthwave ? 1800 : 1200, time);
+
+            const nGain = audioCtx.createGain();
+            const snareDur = isSynthwave ? 0.34 : 0.16;
+            nGain.gain.setValueAtTime(isSynthwave ? 0.55 : 0.28, time);
+            nGain.gain.exponentialRampToValueAtTime(0.001, time + snareDur);
+
+            noise.connect(filter);
+            filter.connect(nGain);
+            nGain.connect(masterFilter);
+            if (isSynthwave) nGain.connect(reverbNode);
+
+            noise.start(time);
+            noise.stop(time + snareDur);
+        }
+
+        function playProceduralHat(time, isOpen) {
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = noiseBuffer;
+
+            const hp = audioCtx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.setValueAtTime(7500, time);
+
+            const gain = audioCtx.createGain();
+            const dur = isOpen ? 0.16 : 0.045;
+            gain.gain.setValueAtTime(state.genre === 'lofi' ? 0.12 : 0.18, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+            noise.connect(hp);
+            hp.connect(gain);
+            gain.connect(masterFilter);
+
+            noise.start(time);
+            noise.stop(time + dur);
+        }
+
+        function playProceduralKickOnCtx(time, isSynthwave, targetCtx, destNode) {
+            const osc = targetCtx.createOscillator();
+            const gain = targetCtx.createGain();
+            osc.type = 'sine';
+
+            const startFreq = isSynthwave ? 160 : 120;
+            const endFreq = isSynthwave ? 42 : 48;
+            const dur = isSynthwave ? 0.32 : 0.25;
+
+            osc.frequency.setValueAtTime(startFreq, time);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, time + 0.08);
+            osc.frequency.exponentialRampToValueAtTime(30, time + dur);
+
+            gain.gain.setValueAtTime(0.85, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+            osc.connect(gain);
+            gain.connect(destNode);
+            osc.start(time);
+            osc.stop(time + dur);
+        }
+
+        function playProceduralSnareOnCtx(time, isSynthwave, targetCtx, destNode, revNode, customNoiseBuf) {
+            const osc = targetCtx.createOscillator();
+            const oscGain = targetCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(isSynthwave ? 210 : 175, time);
+            osc.frequency.exponentialRampToValueAtTime(95, time + 0.1);
+
+            oscGain.gain.setValueAtTime(0.4, time);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
+
+            osc.connect(oscGain);
+            oscGain.connect(destNode);
+            osc.start(time);
+            osc.stop(time + 0.15);
+
+            const noise = targetCtx.createBufferSource();
+            noise.buffer = customNoiseBuf;
+            const filter = targetCtx.createBiquadFilter();
+            filter.type = isSynthwave ? 'bandpass' : 'highpass';
+            filter.frequency.setValueAtTime(isSynthwave ? 1800 : 1200, time);
+
+            const nGain = targetCtx.createGain();
+            const snareDur = isSynthwave ? 0.34 : 0.16;
+            nGain.gain.setValueAtTime(isSynthwave ? 0.55 : 0.28, time);
+            nGain.gain.exponentialRampToValueAtTime(0.001, time + snareDur);
+
+            noise.connect(filter);
+            filter.connect(nGain);
+            nGain.connect(destNode);
+            if (isSynthwave && revNode) nGain.connect(revNode);
+
+            noise.start(time);
+            noise.stop(time + snareDur);
+        }
+
+        function playProceduralHatOnCtx(time, isOpen, targetCtx, destNode, customNoiseBuf) {
+            const noise = targetCtx.createBufferSource();
+            noise.buffer = customNoiseBuf;
+
+            const hp = targetCtx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.setValueAtTime(7500, time);
+
+            const gain = targetCtx.createGain();
+            const dur = isOpen ? 0.16 : 0.045;
+            gain.gain.setValueAtTime(state.genre === 'lofi' ? 0.12 : 0.18, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+            noise.connect(hp);
+            hp.connect(gain);
+            gain.connect(destNode);
+
+            noise.start(time);
+            noise.stop(time + dur);
+        }
+
+        function playProceduralBass_soloDirecto(time, midiNote, duration, isSynthwave) {
+            const osc = audioCtx.createOscillator();
+            const sub = audioCtx.createOscillator();
+            const filter = audioCtx.createBiquadFilter();
+            const gain = audioCtx.createGain();
+
+            const freq = midiToFreq(midiNote);
+            osc.type = isSynthwave ? 'sawtooth' : 'triangle';
+            sub.type = 'sine';
+
+            osc.frequency.setValueAtTime(freq, time);
+            sub.frequency.setValueAtTime(freq * 0.5, time);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(isSynthwave ? 950 : 320, time);
+            if (isSynthwave) {
+                filter.frequency.exponentialRampToValueAtTime(190, time + duration * 0.85);
+            }
+
+            gain.gain.setValueAtTime(0.001, time);
+            gain.gain.linearRampToValueAtTime(isSynthwave ? 0.34 : 0.38, time + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+            osc.connect(filter);
+            sub.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterFilter);
+
+            osc.start(time);
+            sub.start(time);
+            osc.stop(time + duration);
+            sub.stop(time + duration);
+        }
+
+        function playProceduralChord_soloDirecto(time, midiNotes, duration, isSynthwave) {
+            midiNotes.forEach((note, idx) => {
+                const osc = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                const freq = midiToFreq(note);
+                osc.type = isSynthwave ? 'sawtooth' : 'sine';
+                osc2.type = isSynthwave ? 'sawtooth' : 'triangle';
+
+                // Subtle analog detune for warmth
+                osc.frequency.setValueAtTime(freq, time);
+                osc2.frequency.setValueAtTime(freq * (isSynthwave ? 1.006 : 1.003), time);
+
+                const voiceAmp = isSynthwave ? 0.055 : 0.075;
+                gain.gain.setValueAtTime(0.001, time);
+                gain.gain.linearRampToValueAtTime(voiceAmp, time + (0.04 + idx * 0.015));
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+                osc.connect(gain);
+                osc2.connect(gain);
+                gain.connect(masterFilter);
+                gain.connect(reverbNode);
+
+                osc.start(time);
+                osc2.start(time);
+                osc.stop(time + duration);
+                osc2.stop(time + duration);
+            });
+        }
+
+        function playProceduralLead_soloDirecto(time, midiNote, duration, isSynthwave) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = isSynthwave ? 'sawtooth' : 'sine';
+            osc.frequency.setValueAtTime(midiToFreq(midiNote), time);
+
+            gain.gain.setValueAtTime(0.001, time);
+            gain.gain.linearRampToValueAtTime(isSynthwave ? 0.11 : 0.14, time + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+            osc.connect(gain);
+            gain.connect(masterFilter);
+            gain.connect(reverbNode);
+
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        let currentBar = 0;
+
+        function triggerSequencerStep() {
+            if (!state.isPlaying || !audioCtx) return;
+
+            const step = state.currentStep;
+            const isSynth = state.genre === 'synthwave';
+            const stepDuration = (60 / state.bpm) / 4; // 16th note duration in seconds
+
+            // Add subtle human swing on odd steps for Lo-Fi
+            const swingOffset = (!isSynth && step % 2 === 1) ? stepDuration * 0.16 : 0;
+            const now = audioCtx.currentTime + 0.02 + swingOffset;
+
+            const currentChordObj = state.pattern.progression[currentBar % 4];
+            state.activeChordName = currentChordObj.name;
+
+            // 1. Drums Stem
+            if (state.stems.drums) {
+                if (state.pattern.kickPattern[step]) playProceduralKick(now, isSynth);
+                if (state.pattern.snarePattern[step]) playProceduralSnare(now, isSynth);
+                if (state.pattern.hatPattern[step]) playProceduralHat(now, step === 14);
+            }
+
+            // 2. Chords Stem (Trigger on step 0 of each bar, plus syncopated stab on step 10 in Lo-Fi)
+            if (state.stems.chords) {
+                if (step === 0) {
+                    playProceduralChord(now, currentChordObj.notes, stepDuration * 15, isSynth);
+                } else if (!isSynth && step === 10) {
+                    playProceduralChord(now, currentChordObj.notes, stepDuration * 4, isSynth);
+                }
+            }
+
+            // 3. Bass Stem
+            if (state.stems.bass) {
+                if (isSynth) {
+                    // Driving 8th/16th octave bassline for Synthwave
+                    const octaveShift = (step % 2 === 1) ? 12 : 0;
+                    playProceduralBass(now, currentChordObj.bass + octaveShift, stepDuration * 0.9, true);
+                } else {
+                    // Deep relaxed bass notes on beats 0, 6, 10
+                    if (step === 0 || step === 6 || step === 10) {
+                        const fifthShift = (step === 10) ? 7 : 0;
+                        playProceduralBass(now, currentChordObj.bass + fifthShift, stepDuration * 4.5, false);
+                    }
+                }
+            }
+
+            // 4. Melody / Arp Stem
+            if (state.stems.lead) {
+                const leadNote = state.pattern.leadMelody[step];
+                if (leadNote !== null) {
+                    playProceduralLead(now, leadNote, isSynth ? stepDuration * 0.85 : stepDuration * 2.2, isSynth);
+                }
+            }
+
+            // Update Sequencer UI Dots
+            updateStepDotsUI(step, currentChordObj.name);
+
+            // Advance step
+            state.currentStep = (step + 1) % 16;
+            if (state.currentStep === 0) currentBar++;
+
+            state.stepTimerId = setTimeout(triggerSequencerStep, stepDuration * 1000);
+        }
+
+        function triggerSFX(type) {
+            initAudioEngine();
+            const now = audioCtx.currentTime;
+            const pitch = state.sfxPitch;
+
+            // Add visual burst ring on canvas
+            const colors = {
+                whoosh: '#06b6d4',
+                impact: '#f43f5e',
+                riser: '#a855f7',
+                uiclick: '#10b981',
+                glitch: '#f59e0b',
+                braaam: '#6366f1'
+            };
+            state.visualBursts.push({
+                x: Math.random() * 0.6 + 0.2,
+                y: Math.random() * 0.5 + 0.25,
+                radius: 10,
+                maxRadius: 220,
+                alpha: 1.0,
+                color: colors[type] || '#38bdf8',
+                label: type.toUpperCase()
+            });
+
+            if (type === 'whoosh') {
+                // Filtered Noise Bandpass Sweep + Stereo Panning
+                const dur = 0.85 / pitch;
+                const src = audioCtx.createBufferSource();
+                src.buffer = noiseBuffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.Q.setValueAtTime(3.2, now);
+                filter.frequency.setValueAtTime(160 * pitch, now);
+                filter.frequency.exponentialRampToValueAtTime(3400 * pitch, now + dur * 0.45);
+                filter.frequency.exponentialRampToValueAtTime(180 * pitch, now + dur);
+
+                const panner = audioCtx.createStereoPanner();
+                panner.pan.setValueAtTime(-0.85, now);
+                panner.pan.linearRampToValueAtTime(0.85, now + dur);
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.75, now + dur * 0.45);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+                src.connect(filter);
+                filter.connect(panner);
+                panner.connect(gain);
+                gain.connect(compressor);
+                gain.connect(reverbNode);
+
+                src.start(now);
+                src.stop(now + dur);
+            }
+            else if (type === 'impact') {
+                // Massive Cinematic Sub-Drop + Crunchy Transient Boom
+                const dur = 2.1;
+                const sub = audioCtx.createOscillator();
+                const subGain = audioCtx.createGain();
+                sub.type = 'sine';
+                sub.frequency.setValueAtTime(145 * pitch, now);
+                sub.frequency.exponentialRampToValueAtTime(32 * pitch, now + 0.22);
+                sub.frequency.exponentialRampToValueAtTime(22, now + dur);
+
+                subGain.gain.setValueAtTime(1.0, now);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+                sub.connect(subGain);
+                subGain.connect(compressor);
+                sub.start(now);
+                sub.stop(now + dur);
+
+                // Explosion Noise Tail
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = noiseBuffer;
+                const lp = audioCtx.createBiquadFilter();
+                lp.type = 'lowpass';
+                lp.frequency.setValueAtTime(2200 * pitch, now);
+                lp.frequency.exponentialRampToValueAtTime(140, now + 1.6);
+
+                const nGain = audioCtx.createGain();
+                nGain.gain.setValueAtTime(0.8, now);
+                nGain.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
+
+                noise.connect(lp);
+                lp.connect(nGain);
+                nGain.connect(compressor);
+                nGain.connect(reverbNode);
+
+                noise.start(now);
+                noise.stop(now + 1.75);
+            }
+            else if (type === 'riser') {
+                // 2.4-Second Dramatic Tension Riser (Dual Pitch + Resonant Sweep)
+                const dur = 2.4;
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                osc1.type = 'sawtooth';
+                osc2.type = 'triangle';
+
+                osc1.frequency.setValueAtTime(90 * pitch, now);
+                osc1.frequency.exponentialRampToValueAtTime(1100 * pitch, now + dur);
+                osc2.frequency.setValueAtTime(92 * pitch, now);
+                osc2.frequency.exponentialRampToValueAtTime(1125 * pitch, now + dur);
+
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = noiseBuffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.Q.setValueAtTime(4.5, now);
+                filter.frequency.setValueAtTime(200 * pitch, now);
+                filter.frequency.exponentialRampToValueAtTime(5800 * pitch, now + dur);
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.exponentialRampToValueAtTime(0.55, now + dur * 0.92);
+                gain.gain.linearRampToValueAtTime(0.0001, now + dur);
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(compressor);
+                gain.connect(reverbNode);
+
+                osc1.start(now);
+                osc2.start(now);
+                noise.start(now);
+                osc1.stop(now + dur);
+                osc2.stop(now + dur);
+                noise.stop(now + dur);
+            }
+            else if (type === 'uiclick') {
+                // Modern High-Tech Double Crystal UI Feedback Click
+                [0, 0.045].forEach((offset, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    const baseFreq = (i === 0 ? 1450 : 2180) * pitch;
+                    osc.frequency.setValueAtTime(baseFreq, now + offset);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + offset + 0.035);
+
+                    gain.gain.setValueAtTime(0.45, now + offset);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.04);
+
+                    osc.connect(gain);
+                    gain.connect(compressor);
+                    osc.start(now + offset);
+                    osc.stop(now + offset + 0.045);
+                });
+            }
+            else if (type === 'glitch') {
+                // Rapid Staccato Cyber Telemetry Glitch
+                const slices = 7;
+                for (let i = 0; i < slices; i++) {
+                    const start = now + i * 0.042;
+                    const dur = 0.032;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = i % 2 === 0 ? 'square' : 'sawtooth';
+                    const randFreq = (220 + Math.random() * 2400) * pitch;
+                    osc.frequency.setValueAtTime(randFreq, start);
+
+                    gain.gain.setValueAtTime(0.28, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+
+                    osc.connect(gain);
+                    gain.connect(compressor);
+                    osc.start(start);
+                    osc.stop(start + dur);
+                }
+            }
+            else if (type === 'braaam') {
+                // Detuned Brass Trailer Horn ("Inception" style Braaam)
+                const dur = 1.85;
+                const detunes = [-18, -7, 0, 8, 19];
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(250, now);
+                filter.frequency.exponentialRampToValueAtTime(1850 * pitch, now + 0.25);
+                filter.frequency.exponentialRampToValueAtTime(380, now + dur);
+
+                const masterBraamGain = audioCtx.createGain();
+                masterBraamGain.gain.setValueAtTime(0.001, now);
+                masterBraamGain.gain.linearRampToValueAtTime(0.55, now + 0.08);
+                masterBraamGain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+                detunes.forEach((cents) => {
+                    const osc = audioCtx.createOscillator();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(65.41 * pitch, now); // Low C2
+                    osc.detune.setValueAtTime(cents, now);
+                    osc.connect(filter);
+                    osc.start(now);
+                    osc.stop(now + dur);
+                });
+
+                filter.connect(masterBraamGain);
+                masterBraamGain.connect(compressor);
+                masterBraamGain.connect(reverbNode);
+            }
+
+            // Update UI status
+            const names = {
+                whoosh: 'Whoosh Aéreo',
+                impact: 'Cinematic Impact',
+                riser: 'Tension Riser',
+                uiclick: 'UI Click Cristal',
+                glitch: 'Data Glitch',
+                braaam: 'Sci-Fi Braaam'
+            };
+            document.getElementById('lastSfxText').textContent = `Último SFX: ${names[type]} (${pitch.toFixed(2)}x)`;
+        }
+
+        const canvas = document.getElementById('visualizerCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function renderVisualizer() {
+            requestAnimationFrame(renderVisualizer);
+
+            const w = canvas.width;
+            const h = canvas.height;
+            const isSynth = state.genre === 'synthwave';
+
+            // Background with subtle motion trail
+            ctx.fillStyle = isSynth ? 'rgba(12, 8, 22, 0.28)' : 'rgba(9, 12, 20, 0.28)';
+            ctx.fillRect(0, 0, w, h);
+
+            // Subtle perspective grid lines
+            ctx.strokeStyle = isSynth ? 'rgba(236, 72, 153, 0.08)' : 'rgba(99, 102, 241, 0.07)';
+            ctx.lineWidth = 1;
+            const gridCols = 16;
+            for (let i = 1; i < gridCols; i++) {
+                const x = (w / gridCols) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, h);
+                ctx.stroke();
+            }
+
+            // Draw SFX Reactive Shockwave Bursts
+            for (let i = state.visualBursts.length - 1; i >= 0; i--) {
+                const b = state.visualBursts[i];
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(b.x * w, b.y * h, b.radius * window.devicePixelRatio, 0, Math.PI * 2);
+                ctx.strokeStyle = b.color;
+                ctx.globalAlpha = b.alpha;
+                ctx.lineWidth = 3 * window.devicePixelRatio;
+                ctx.stroke();
+                ctx.restore();
+
+                b.radius += 5.5;
+                b.alpha -= 0.024;
+                if (b.alpha <= 0) state.visualBursts.splice(i, 1);
+            }
+
+            if (!analyser) {
+                // Idle standby wave line
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(99, 102, 241, 0.35)';
+                ctx.lineWidth = 2;
+                ctx.moveTo(0, h / 2);
+                ctx.lineTo(w, h / 2);
+                ctx.stroke();
+                return;
+            }
+
+            const bufferLength = analyser.frequencyBinCount;
+            const freqData = new Uint8Array(bufferLength);
+            const timeData = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(freqData);
+            analyser.getByteTimeDomainData(timeData);
+
+            // 1. Frequency Spectrum Bars
+            if (state.visMode === 'combined' || state.visMode === 'bars') {
+                const barCount = 64;
+                const barWidth = (w / barCount) * 0.78;
+                const gap = (w / barCount) * 0.22;
+
+                for (let i = 0; i < barCount; i++) {
+                    const val = freqData[i * 2];
+                    const percent = val / 255;
+                    const barHeight = Math.max(4, percent * (h * 0.72));
+                    const x = i * (barWidth + gap) + gap / 2;
+                    const y = h - barHeight;
+
+                    const grad = ctx.createLinearGradient(x, h, x, y);
+                    if (isSynth) {
+                        grad.addColorStop(0, 'rgba(236, 72, 153, 0.85)');
+                        grad.addColorStop(1, 'rgba(6, 182, 212, 0.95)');
+                    } else {
+                        grad.addColorStop(0, 'rgba(99, 102, 241, 0.8)');
+                        grad.addColorStop(1, 'rgba(52, 211, 153, 0.9)');
+                    }
+
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.roundRect(x, y, barWidth, barHeight, 4);
+                    ctx.fill();
+                }
+            }
+
+            // 2. Oscilloscope Time-Domain Waveform
+            if (state.visMode === 'combined' || state.visMode === 'wave') {
+                ctx.save();
+                ctx.beginPath();
+                ctx.lineWidth = 2.8 * window.devicePixelRatio;
+                ctx.strokeStyle = isSynth ? '#38bdf8' : '#a5b4fc';
+                ctx.shadowColor = isSynth ? '#06b6d4' : '#6366f1';
+                ctx.shadowBlur = 12;
+
+                const sliceWidth = w / bufferLength;
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = timeData[i] / 128.0;
+                    const y = (v * h) / 2;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                    x += sliceWidth;
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Recording Watermark badge inside Canvas when exporting Video
+            if (state.isRecording) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(225, 29, 72, 0.9)';
+                ctx.beginPath();
+                ctx.arc(w - 28 * window.devicePixelRatio, 60 * window.devicePixelRatio, 6 * window.devicePixelRatio, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function encodeWAVFromBuffers(leftChunks, rightChunks, sampleRate) {
+            const totalLength = leftChunks.reduce((acc, chunk) => acc + chunk.length, 0);
+            const interleaved = new Float32Array(totalLength * 2);
+            let offset = 0;
+
+            for (let i = 0; i < leftChunks.length; i++) {
+                const l = leftChunks[i];
+                const r = rightChunks[i];
+                for (let j = 0; j < l.length; j++) {
+                    interleaved[offset++] = l[j];
+                    interleaved[offset++] = r[j];
+                }
+            }
+
+            const buffer = new ArrayBuffer(44 + interleaved.length * 2);
+            const view = new DataView(buffer);
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + interleaved.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // PCM chunk size
+            view.setUint16(20, 1, true);  // Linear PCM
+            view.setUint16(22, 2, true);  // Stereo (2 channels)
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 4, true); // Byte rate
+            view.setUint16(32, 4, true);  // Block align
+            view.setUint16(34, 16, true); // 16-bit samples
+            writeString(view, 36, 'data');
+            view.setUint32(40, interleaved.length * 2, true);
+
+            let idx = 44;
+            for (let i = 0; i < interleaved.length; i++, idx += 2) {
+                const s = Math.max(-1, Math.min(1, interleaved[i]));
+                view.setInt16(idx, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        /**
+         * Encode an AudioBuffer (from OfflineAudioContext) into 16-bit or 24-bit PCM WAV Blob
+         * Supports optional Fade-In/Out and Peak Normalization (-0.5 dB)
+         */
+        function encodeAudioBufferToWAV(audioBuffer, bitDepth = 16, applyFade = false, normalize = true) {
+            const numChannels = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+            const length = audioBuffer.length;
+            const left = new Float32Array(audioBuffer.getChannelData(0));
+            const right = numChannels > 1 ? new Float32Array(audioBuffer.getChannelData(1)) : new Float32Array(left);
+
+            // Normalización de pico a -1 dBFS (0,891): deja margen para el pico real entre muestras
+            if (normalize) {
+                let maxPeak = 0.001;
+                for (let i = 0; i < length; i++) {
+                    const al = Math.abs(left[i]);
+                    const ar = Math.abs(right[i]);
+                    if (al > maxPeak) maxPeak = al;
+                    if (ar > maxPeak) maxPeak = ar;
+                }
+                const targetGain = 0.891 / maxPeak;
+                for (let i = 0; i < length; i++) {
+                    left[i] *= targetGain;
+                    right[i] *= targetGain;
+                }
+            }
+
+            // Optional Smooth 2-second Fade-In & Fade-Out
+            if (applyFade) {
+                const fadeSamples = Math.min(Math.floor(sampleRate * 2.0), Math.floor(length / 3));
+                for (let i = 0; i < fadeSamples; i++) {
+                    const fadeInGain = i / fadeSamples;
+                    const fadeOutGain = (fadeSamples - i) / fadeSamples;
+                    left[i] *= fadeInGain;
+                    right[i] *= fadeInGain;
+                    left[length - 1 - i] *= fadeOutGain;
+                    right[length - 1 - i] *= fadeOutGain;
+                }
+            }
+
+            const bytesPerSample = bitDepth === 24 ? 3 : 2;
+            const blockAlign = 2 * bytesPerSample;
+            const dataSize = length * blockAlign;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            function writeStr(v, offset, str) {
+                for (let i = 0; i < str.length; i++) v.setUint8(offset + i, str.charCodeAt(i));
+            }
+
+            writeStr(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeStr(view, 8, 'WAVE');
+            writeStr(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM
+            view.setUint16(22, 2, true); // Stereo
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * blockAlign, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bitDepth, true);
+            writeStr(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < length; i++) {
+                const channels = [left[i], right[i]];
+                for (let c = 0; c < 2; c++) {
+                    const sample = Math.max(-1, Math.min(1, channels[c]));
+                    if (bitDepth === 24) {
+                        const intVal = Math.floor(sample < 0 ? sample * 8388608 : sample * 8388607);
+                        view.setUint8(offset, intVal & 0xFF);
+                        view.setUint8(offset + 1, (intVal >> 8) & 0xFF);
+                        view.setUint8(offset + 2, (intVal >> 16) & 0xFF);
+                        offset += 3;
+                    } else {
+                        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+                        offset += 2;
+                    }
+                }
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        /**
+         * Offline Procedural Track Renderer
+         * Renders any duration (e.g., 15s, 30s, 60s, 120s or exact bar count) faster than real-time!
+         */
+        async function renderProceduralTrackOffline(durationSeconds, sampleRate = 44100, activeStemsOverride = null) {
+            const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+            const totalSamples = Math.ceil(durationSeconds * sampleRate);
+            const offlineCtx = new OfflineCtx(2, totalSamples, sampleRate);
+
+            const stemsToUse = activeStemsOverride || state.stems;
+            const isSynth = state.genre === 'synthwave';
+
+            // Master Filter & Dynamics on Offline Context
+            const offFilter = offlineCtx.createBiquadFilter();
+            offFilter.type = 'lowpass';
+            offFilter.frequency.setValueAtTime(state.cutoff, 0);
+            offFilter.Q.setValueAtTime(1.2, 0);
+
+            const offComp = offlineCtx.createDynamicsCompressor();
+            offComp.threshold.setValueAtTime(-14, 0);
+            offComp.knee.setValueAtTime(18, 0);
+            offComp.ratio.setValueAtTime(6, 0);
+
+            // Synthetic Impulse Reverb
+            const offReverb = offlineCtx.createConvolver();
+            const revLen = Math.floor(sampleRate * 2.2);
+            const revBuf = offlineCtx.createBuffer(2, revLen, sampleRate);
+            for (let ch = 0; ch < 2; ch++) {
+                const cd = revBuf.getChannelData(ch);
+                for (let i = 0; i < revLen; i++) {
+                    cd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / revLen, 2.8);
+                }
+            }
+            offReverb.buffer = revBuf;
+            const offRevWet = offlineCtx.createGain();
+            offRevWet.gain.setValueAtTime(0.28, 0);
+
+            offFilter.connect(offComp);
+            offReverb.connect(offRevWet);
+            offRevWet.connect(offComp);
+            offComp.connect(offlineCtx.destination);
+
+            // Create Offline White Noise Buffer
+            const nLen = sampleRate * 2;
+            const offNoiseBuf = offlineCtx.createBuffer(1, nLen, sampleRate);
+            const nd = offNoiseBuf.getChannelData(0);
+            for (let i = 0; i < nLen; i++) nd[i] = Math.random() * 2 - 1;
+
+            // Optional Lo-Fi Vinyl Texture Layer (if full mix or chords active)
+            if (!isSynth && stemsToUse.chords) {
+                const vBuf = offlineCtx.createBuffer(1, sampleRate * 4, sampleRate);
+                const vd = vBuf.getChannelData(0);
+                for (let i = 0; i < vd.length; i++) {
+                    const pop = Math.random() > 0.9985 ? (Math.random() * 0.55 - 0.27) : 0;
+                    const hiss = (Math.random() * 2 - 1) * 0.012;
+                    vd[i] = pop + hiss;
+                }
+                const vNode = offlineCtx.createBufferSource();
+                vNode.buffer = vBuf;
+                vNode.loop = true;
+                const vGain = offlineCtx.createGain();
+                vGain.gain.setValueAtTime(0.11, 0);
+                vNode.connect(vGain);
+                vGain.connect(offFilter);
+                vNode.start(0);
+            }
+
+            // Schedule all 16th-note steps across the entire requested duration
+            const stepDuration = (60 / state.bpm) / 4;
+            const totalSteps = Math.floor(durationSeconds / stepDuration);
+
+            for (let s = 0; s < totalSteps; s++) {
+                const step = s % 16;
+                const bar = Math.floor(s / 16);
+                const swingOffset = (!isSynth && step % 2 === 1) ? stepDuration * 0.16 : 0;
+                const time = s * stepDuration + swingOffset;
+                if (time >= durationSeconds - 0.05) break;
+
+                const chordObj = state.pattern.progression[bar % 4];
+
+                if (stemsToUse.drums) {
+                    if (state.pattern.kickPattern[step]) playProceduralKickOnCtx(time, isSynth, offlineCtx, offFilter);
+                    if (state.pattern.snarePattern[step]) playProceduralSnareOnCtx(time, isSynth, offlineCtx, offFilter, offReverb, offNoiseBuf);
+                    if (state.pattern.hatPattern[step]) playProceduralHatOnCtx(time, step === 14, offlineCtx, offFilter, offNoiseBuf);
+                }
+
+                if (stemsToUse.chords) {
+                    if (step === 0) {
+                        playProceduralChord(time, chordObj.notes, stepDuration * 15, isSynth, offlineCtx, offFilter, offReverb);
+                    } else if (!isSynth && step === 10) {
+                        playProceduralChord(time, chordObj.notes, stepDuration * 4, isSynth, offlineCtx, offFilter, offReverb);
+                    }
+                }
+
+                if (stemsToUse.bass) {
+                    if (isSynth) {
+                        const oct = (step % 2 === 1) ? 12 : 0;
+                        playProceduralBass(time, chordObj.bass + oct, stepDuration * 0.9, true, offlineCtx, offFilter);
+                    } else if (step === 0 || step === 6 || step === 10) {
+                        const fifth = (step === 10) ? 7 : 0;
+                        playProceduralBass(time, chordObj.bass + fifth, stepDuration * 4.5, false, offlineCtx, offFilter);
+                    }
+                }
+
+                if (stemsToUse.lead) {
+                    const leadNote = state.pattern.leadMelody[step];
+                    if (leadNote !== null) {
+                        playProceduralLead(time, leadNote, isSynth ? stepDuration * 0.85 : stepDuration * 2.2, isSynth, offlineCtx, offFilter, offReverb);
+                    }
+                }
+            }
+
+            return await offlineCtx.startRendering();
+        }
+
+        /**
+         * Offline Single SFX WAV Exporter
+         * Lets the user download any individual SFX pad as a crisp WAV file immediately
+         */
+        async function downloadSingleSFX(type) {
+            const sampleRate = 44100;
+            const durations = { whoosh: 1.5, impact: 2.4, riser: 2.8, uiclick: 0.35, glitch: 0.6, braaam: 2.2 };
+            const dur = durations[type] || 1.8;
+            const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+            const offCtx = new OfflineCtx(2, Math.ceil(dur * sampleRate), sampleRate);
+            const pitch = state.sfxPitch;
+            const now = 0.02;
+
+            // Create local noise buffer
+            const nBuf = offCtx.createBuffer(1, sampleRate * 3, sampleRate);
+            const nd = nBuf.getChannelData(0);
+            for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+
+            if (type === 'whoosh') {
+                const sfxDur = 0.85 / pitch;
+                const src = offCtx.createBufferSource();
+                src.buffer = nBuf;
+                const filter = offCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.Q.setValueAtTime(3.2, now);
+                filter.frequency.setValueAtTime(160 * pitch, now);
+                filter.frequency.exponentialRampToValueAtTime(3400 * pitch, now + sfxDur * 0.45);
+                filter.frequency.exponentialRampToValueAtTime(180 * pitch, now + sfxDur);
+                const panner = offCtx.createStereoPanner();
+                panner.pan.setValueAtTime(-0.85, now);
+                panner.pan.linearRampToValueAtTime(0.85, now + sfxDur);
+                const gain = offCtx.createGain();
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.85, now + sfxDur * 0.45);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + sfxDur);
+                src.connect(filter); filter.connect(panner); panner.connect(gain); gain.connect(offCtx.destination);
+                src.start(now); src.stop(now + sfxDur);
+            } else if (type === 'impact') {
+                const sub = offCtx.createOscillator();
+                const subGain = offCtx.createGain();
+                sub.type = 'sine';
+                sub.frequency.setValueAtTime(145 * pitch, now);
+                sub.frequency.exponentialRampToValueAtTime(32 * pitch, now + 0.22);
+                sub.frequency.exponentialRampToValueAtTime(22, now + 2.0);
+                subGain.gain.setValueAtTime(0.95, now);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+                sub.connect(subGain); subGain.connect(offCtx.destination);
+                sub.start(now); sub.stop(now + 2.0);
+
+                const noise = offCtx.createBufferSource();
+                noise.buffer = nBuf;
+                const lp = offCtx.createBiquadFilter();
+                lp.type = 'lowpass';
+                lp.frequency.setValueAtTime(2200 * pitch, now);
+                lp.frequency.exponentialRampToValueAtTime(140, now + 1.6);
+                const nGain = offCtx.createGain();
+                nGain.gain.setValueAtTime(0.75, now);
+                nGain.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
+                noise.connect(lp); lp.connect(nGain); nGain.connect(offCtx.destination);
+                noise.start(now); noise.stop(now + 1.75);
+            } else if (type === 'riser') {
+                const rDur = 2.4;
+                const osc1 = offCtx.createOscillator();
+                const osc2 = offCtx.createOscillator();
+                osc1.type = 'sawtooth'; osc2.type = 'triangle';
+                osc1.frequency.setValueAtTime(90 * pitch, now);
+                osc1.frequency.exponentialRampToValueAtTime(1100 * pitch, now + rDur);
+                osc2.frequency.setValueAtTime(92 * pitch, now);
+                osc2.frequency.exponentialRampToValueAtTime(1125 * pitch, now + rDur);
+                const noise = offCtx.createBufferSource();
+                noise.buffer = nBuf;
+                const filter = offCtx.createBiquadFilter();
+                filter.type = 'bandpass'; filter.Q.setValueAtTime(4.5, now);
+                filter.frequency.setValueAtTime(200 * pitch, now);
+                filter.frequency.exponentialRampToValueAtTime(5800 * pitch, now + rDur);
+                const gain = offCtx.createGain();
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.exponentialRampToValueAtTime(0.75, now + rDur * 0.92);
+                gain.gain.linearRampToValueAtTime(0.0001, now + rDur);
+                osc1.connect(filter); osc2.connect(filter); noise.connect(filter);
+                filter.connect(gain); gain.connect(offCtx.destination);
+                osc1.start(now); osc2.start(now); noise.start(now);
+                osc1.stop(now + rDur); osc2.stop(now + rDur); noise.stop(now + rDur);
+            } else if (type === 'uiclick') {
+                [0, 0.045].forEach((offset, i) => {
+                    const osc = offCtx.createOscillator();
+                    const gain = offCtx.createGain();
+                    osc.type = 'sine';
+                    const baseFreq = (i === 0 ? 1450 : 2180) * pitch;
+                    osc.frequency.setValueAtTime(baseFreq, now + offset);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + offset + 0.035);
+                    gain.gain.setValueAtTime(0.65, now + offset);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.04);
+                    osc.connect(gain); gain.connect(offCtx.destination);
+                    osc.start(now + offset); osc.stop(now + offset + 0.045);
+                });
+            } else if (type === 'glitch') {
+                for (let i = 0; i < 7; i++) {
+                    const start = now + i * 0.042;
+                    const osc = offCtx.createOscillator();
+                    const gain = offCtx.createGain();
+                    osc.type = i % 2 === 0 ? 'square' : 'sawtooth';
+                    osc.frequency.setValueAtTime((220 + Math.random() * 2400) * pitch, start);
+                    gain.gain.setValueAtTime(0.45, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.032);
+                    osc.connect(gain); gain.connect(offCtx.destination);
+                    osc.start(start); osc.stop(start + 0.032);
+                }
+            } else if (type === 'braaam') {
+                const bDur = 1.85;
+                const filter = offCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(250, now);
+                filter.frequency.exponentialRampToValueAtTime(1850 * pitch, now + 0.25);
+                filter.frequency.exponentialRampToValueAtTime(380, now + bDur);
+                const gain = offCtx.createGain();
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.75, now + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + bDur);
+                [-18, -7, 0, 8, 19].forEach(cents => {
+                    const osc = offCtx.createOscillator();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(65.41 * pitch, now);
+                    osc.detune.setValueAtTime(cents, now);
+                    osc.connect(filter);
+                    osc.start(now); osc.stop(now + bDur);
+                });
+                filter.connect(gain); gain.connect(offCtx.destination);
+            }
+
+            const renderedBuffer = await offCtx.startRendering();
+            const wavBlob = encodeAudioBufferToWAV(renderedBuffer, 16, false, true);
+            downloadBlob(wavBlob, `SFX_${type.toUpperCase()}_pitch${pitch.toFixed(1)}x.wav`);
+            showExportToast(`SFX Exportado (.WAV)`, `Efecto "${type.toUpperCase()}" sintetizado y descargado en 16-bit WAV.`);
+        }
+
+        // [copia de trabajo] cabecera restaurada: en el original faltaba y rompía todo el script
+        function toggleRecording() {
+            initAudioEngine();
+            if (!state.isRecording) {
+                state.isRecording = true;
+                state.recStartTime = Date.now();
+                if (state.exportFormat === 'wav') {
+                    recordedLeft = [];
+                    recordedRight = [];
+                } else {
+                    recordedVideoChunks = [];
+                    const canvasStream = canvas.captureStream(30);
+                    const combinedStream = new MediaStream([
+                        ...canvasStream.getVideoTracks(),
+                        ...mediaStreamDest.stream.getAudioTracks()
+                    ]);
+
+                    // Pick best supported MP4 or WebM container
+                    const mimeTypes = [
+                        'video/mp4;codecs=avc1,mp4a.40.2',
+                        'video/mp4',
+                        'video/webm;codecs=vp9,opus',
+                        'video/webm'
+                    ];
+                    const selectedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported(m)) || '';
+                    mediaRecorder = new MediaRecorder(combinedStream, selectedMime ? { mimeType: selectedMime } : {});
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        if (e.data && e.data.size > 0) recordedVideoChunks.push(e.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const finalMime = mediaRecorder.mimeType || 'video/webm';
+                        const ext = finalMime.includes('mp4') ? 'mp4' : 'webm';
+                        const blob = new Blob(recordedVideoChunks, { type: finalMime });
+                        downloadBlob(blob, `SynthFlow_${state.genre}_seed${state.seed}.${ext}`);
+                        showExportToast(`Vídeo Exportado (.${ext.toUpperCase()})`, `Se ha descargado la captura de vídeo y audio procedural.`);
+                    };
+
+                    mediaRecorder.start(200);
+                }
+
+                // Update Recording Button UI
+                const recBtn = document.getElementById('recordBtn');
+                recBtn.classList.remove('bg-rose-600', 'hover:bg-rose-500');
+                recBtn.classList.add('bg-amber-600', 'hover:bg-amber-500');
+                document.getElementById('recIndicator').classList.add('rec-dot');
+                document.getElementById('recordBtnText').textContent = 'Detener y Descargar';
+                const timerEl = document.getElementById('recordTimer');
+                timerEl.classList.remove('hidden');
+
+                state.recIntervalId = setInterval(() => {
+                    const sec = Math.floor((Date.now() - state.recStartTime) / 1000);
+                    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+                    const s = String(sec % 60).padStart(2, '0');
+                    timerEl.textContent = `${m}:${s}`;
+                }, 500);
+
+            } else {
+                // Stop Recording & Trigger Download
+                state.isRecording = false;
+                clearInterval(state.recIntervalId);
+
+                if (state.exportFormat === 'wav') {
+                    const wavBlob = encodeWAVFromBuffers(recordedLeft, recordedRight, audioCtx.sampleRate);
+                    downloadBlob(wavBlob, `SynthFlow_${state.genre}_seed${state.seed}.wav`);
+                    showExportToast('Audio WAV Exportado', 'Tu composición en calidad estudio (16-bit PCM WAV) se ha descargado.');
+                } else if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+
+                // Reset Recording Button UI
+                const recBtn = document.getElementById('recordBtn');
+                recBtn.classList.add('bg-rose-600', 'hover:bg-rose-500');
+                recBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500');
+                document.getElementById('recIndicator').classList.remove('rec-dot');
+                document.getElementById('recordBtnText').textContent = 'Grabar en Vivo';
+                document.getElementById('recordTimer').classList.add('hidden');
+            }
+        }
+
+        function getTargetExportDurationSeconds() {
+            if (state.customExport.durationMode === 'bars') {
+                // 1 bar = 4 beats = 16 sixteenth-steps
+                const secondsPerBar = (60 / state.bpm) * 4;
+                return Math.max(2, secondsPerBar * state.customExport.bars);
+            }
+            return state.customExport.seconds;
+        }
+
+        function updateModalDurationBadge() {
+            const secs = getTargetExportDurationSeconds();
+            const badge = document.getElementById('computedDurationBadge');
+            if (state.customExport.durationMode === 'bars') {
+                badge.textContent = `Loop Exacto: ${state.customExport.bars} compases (${secs.toFixed(1)} seg a ${state.bpm} BPM)`;
+            } else {
+                badge.textContent = `Duración: ${secs.toFixed(1)} seg (${state.bpm} BPM)`;
+            }
+            document.getElementById('modalSeedLabel').textContent = `#${state.seed}`;
+        }
+
+        async function runCustomStudioExport() {
+            if (state.customExport.isRendering) return;
+            state.customExport.isRendering = true;
+
+            const progBox = document.getElementById('exportProgressBox');
+            const progBar = document.getElementById('exportProgressBar');
+            const progText = document.getElementById('exportProgressText');
+            const progPct = document.getElementById('exportProgressPct');
+            const startBtn = document.getElementById('startCustomExportBtn');
+
+            progBox.classList.remove('hidden');
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50');
+
+            const durationSec = getTargetExportDurationSeconds();
+            const fmt = state.customExport.format;
+            const applyFade = document.getElementById('expFadeCheck').checked;
+            const normalize = document.getElementById('expNormalizeCheck').checked;
+            const exportStems = document.getElementById('expStemsCheck').checked;
+
+            const setProgress = (pct, msg) => {
+                progBar.style.width = `${pct}%`;
+                progPct.textContent = `${Math.round(pct)}%`;
+                progText.textContent = msg;
+            };
+
+            try {
+                // Case A: Multi-Track Stems Export (4 separate WAV files)
+                if (exportStems) {
+                    const stemKeys = [
+                        { key: 'drums', label: '01_Bateria_Drums' },
+                        { key: 'bass', label: '02_Bajo_Bass' },
+                        { key: 'chords', label: '03_Acordes_Chords' },
+                        { key: 'lead', label: '04_Melodia_Lead' }
+                    ];
+                    const bitDepth = fmt === 'wav24' ? 24 : 16;
+                    const sr = fmt === 'wav24' ? 48000 : 44100;
+
+                    for (let i = 0; i < stemKeys.length; i++) {
+                        const item = stemKeys[i];
+                        setProgress(((i + 0.3) / stemKeys.length) * 100, `Renderizando Stem: ${item.label}...`);
+                        await new Promise(r => setTimeout(r, 80));
+
+                        const soloMap = { drums: false, bass: false, chords: false, lead: false };
+                        soloMap[item.key] = true;
+
+                        const buf = await renderProceduralTrackOffline(durationSec, sr, soloMap);
+                        const wavBlob = encodeAudioBufferToWAV(buf, bitDepth, applyFade, normalize);
+                        downloadBlob(wavBlob, `SynthFlow_${state.genre}_seed${state.seed}_${item.label}.wav`);
+                        await new Promise(r => setTimeout(r, 350));
+                    }
+
+                    setProgress(100, '¡4 Stems exportados correctamente!');
+                    showExportToast('Stems Exportados (4 Pistas)', 'Se han descargado las 4 pistas individuales en formato WAV sin pérdidas.');
+                }
+                // Case B: Instant Offline WAV (16-bit or 24-bit Hi-Res)
+                else if (fmt === 'wav16' || fmt === 'wav24') {
+                    const bitDepth = fmt === 'wav24' ? 24 : 16;
+                    const sr = fmt === 'wav24' ? 48000 : 44100;
+                    setProgress(25, `Sintetizando ${durationSec.toFixed(1)}s en motor Offline (${sr / 1000}kHz / ${bitDepth}-bit)...`);
+                    await new Promise(r => setTimeout(r, 60));
+
+                    const renderedBuffer = await renderProceduralTrackOffline(durationSec, sr, null);
+                    setProgress(75, 'Masterizando y codificando contenedor WAV...');
+                    await new Promise(r => setTimeout(r, 60));
+
+                    const wavBlob = encodeAudioBufferToWAV(renderedBuffer, bitDepth, applyFade, normalize);
+                    const loopSuffix = state.customExport.durationMode === 'bars' ? `_${state.customExport.bars}bars` : `_${Math.round(durationSec)}s`;
+                    downloadBlob(wavBlob, `SynthFlow_${state.genre}_seed${state.seed}${loopSuffix}_${bitDepth}bit.wav`);
+
+                    setProgress(100, '¡Descarga completada!');
+                    showExportToast(`WAV ${bitDepth}-bit Exportado`, `Pista de ${durationSec.toFixed(1)}s renderizada al instante y descargada.`);
+                }
+                // Case C: Timed Real-Time Capture for Compressed Audio (OGG/WebM/M4A) or Video (MP4/WebM)
+                else {
+                    initAudioEngine();
+                    if (!state.isPlaying) togglePlayback();
+
+                    const isVideo = fmt === 'video';
+                    const chunks = [];
+                    let streamToRecord;
+
+                    if (isVideo) {
+                        const canvasStream = canvas.captureStream(30);
+                        streamToRecord = new MediaStream([
+                            ...canvasStream.getVideoTracks(),
+                            ...mediaStreamDest.stream.getAudioTracks()
+                        ]);
+                    } else {
+                        streamToRecord = mediaStreamDest.stream;
+                    }
+
+                    const mimeCandidates = isVideo
+                        ? ['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm']
+                        : ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/webm'];
+
+                    const chosenMime = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m)) || '';
+                    const rec = new MediaRecorder(streamToRecord, chosenMime ? { mimeType: chosenMime } : {});
+
+                    rec.ondataavailable = (e) => {
+                        if (e.data && e.data.size > 0) chunks.push(e.data);
+                    };
+
+                    await new Promise((resolve) => {
+                        rec.onstop = resolve;
+                        rec.start(200);
+
+                        const startMs = Date.now();
+                        const totalMs = durationSec * 1000;
+                        const timer = setInterval(() => {
+                            const elapsed = Date.now() - startMs;
+                            const pct = Math.min(99, (elapsed / totalMs) * 100);
+                            setProgress(pct, `Capturando ${isVideo ? 'Vídeo + Audio' : 'Audio Comprimido'} (${Math.ceil((totalMs - elapsed) / 1000)}s restantes)...`);
+                            if (elapsed >= totalMs) {
+                                clearInterval(timer);
+                                if (rec.state !== 'inactive') rec.stop();
+                            }
+                        }, 200);
+                    });
+
+                    const finalMime = rec.mimeType || (isVideo ? 'video/webm' : 'audio/webm');
+                    let ext = 'webm';
+                    if (finalMime.includes('mp4')) ext = isVideo ? 'mp4' : 'm4a';
+                    else if (finalMime.includes('ogg')) ext = 'ogg';
+
+                    const blob = new Blob(chunks, { type: finalMime });
+                    downloadBlob(blob, `SynthFlow_${state.genre}_seed${state.seed}_${Math.round(durationSec)}s.${ext}`);
+                    setProgress(100, '¡Captura finalizada!');
+                    showExportToast(`Archivo .${ext.toUpperCase()} Exportado`, `Tu grabación de ${durationSec.toFixed(1)}s se ha descargado.`);
+                }
+            } catch (err) {
+                console.error('Error en exportación:', err);
+                showExportToast('Aviso de Exportación', 'Se produjo un error durante el renderizado.');
+            } finally {
+                setTimeout(() => {
+                    state.customExport.isRendering = false;
+                    startBtn.disabled = false;
+                    startBtn.classList.remove('opacity-50');
+                    progBox.classList.add('hidden');
+                    progBar.style.width = '0%';
+                    document.getElementById('exportModal').classList.add('hidden');
+                }, 900);
+            }
+        }
+
+        function downloadBlob(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 1500);
+        }
+
+        function showExportToast(title, message) {
+            const toast = document.getElementById('exportToast');
+            document.getElementById('toastTitle').textContent = title;
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 6000);
+        }
+
+        function buildSequencerDots() {
+            const container = document.getElementById('stepDotsContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const dot = document.createElement('div');
+                dot.className = `step-dot h-2 flex-1 rounded-full transition-all duration-75 ${i % 4 === 0 ? 'bg-slate-600' : 'bg-studio-700'}`;
+                container.appendChild(dot);
+            }
+        }
+
+        function updateStepDotsUI(activeStep, chordName) {
+            const dots = document.querySelectorAll('.step-dot');
+            dots.forEach((d, idx) => {
+                if (idx === activeStep) d.classList.add('active');
+                else d.classList.remove('active');
+            });
+            document.getElementById('currentChordLabel').textContent = `ACORDE: ${chordName}`;
+        }
+
+        function togglePlayback() {
+            initAudioEngine();
+            state.isPlaying = !state.isPlaying;
+
+            const playBtnText = document.getElementById('playTrackText');
+            const playIcon = document.getElementById('playIcon');
+            const statusDot = document.getElementById('engineStatusDot');
+            const statusText = document.getElementById('engineStatusText');
+
+            if (state.isPlaying) {
+                state.currentStep = 0;
+                currentBar = 0;
+                updateVinylLevel();
+                triggerSequencerStep();
+
+                playBtnText.textContent = 'Detener Pista';
+                playIcon.innerHTML = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path>';
+                statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-ping';
+                statusText.textContent = 'GENERANDO EN VIVO';
+            } else {
+                clearTimeout(state.stepTimerId);
+                updateVinylLevel();
+                playBtnText.textContent = 'Reproducir Pista';
+                playIcon.innerHTML = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>';
+                statusDot.className = 'w-2 h-2 rounded-full bg-slate-500';
+                statusText.textContent = 'PAUSADO';
+            }
+        }
+
+        function selectGenre(genre) {
+            state.genre = genre;
+            const lofiBtn = document.getElementById('genreLofiBtn');
+            const synthBtn = document.getElementById('genreSynthBtn');
+            const bpmSlider = document.getElementById('bpmSlider');
+            const cutoffSlider = document.getElementById('cutoffSlider');
+
+            if (genre === 'lofi') {
+                lofiBtn.className = 'genre-card group text-left p-4 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 transition relative overflow-hidden';
+                synthBtn.className = 'genre-card group text-left p-4 rounded-xl border-2 border-studio-700 bg-studio-800/60 hover:border-pink-500/50 transition relative overflow-hidden';
+                state.bpm = 78;
+                state.cutoff = 3200;
+                document.getElementById('hudGenre').textContent = 'LO-FI CHILL';
+                document.getElementById('hudGenre').className = 'text-xs font-mono text-indigo-400 font-semibold';
+            } else {
+                synthBtn.className = 'genre-card group text-left p-4 rounded-xl border-2 border-pink-500 bg-pink-500/10 transition relative overflow-hidden';
+                lofiBtn.className = 'genre-card group text-left p-4 rounded-xl border-2 border-studio-700 bg-studio-800/60 hover:border-indigo-500/50 transition relative overflow-hidden';
+                state.bpm = 118;
+                state.cutoff = 8500;
+                document.getElementById('hudGenre').textContent = 'SYNTHWAVE 80S';
+                document.getElementById('hudGenre').className = 'text-xs font-mono text-pink-400 font-semibold';
+            }
+
+            bpmSlider.value = state.bpm;
+            document.getElementById('bpmValueLabel').textContent = `${state.bpm} BPM`;
+
+            cutoffSlider.value = state.cutoff;
+            document.getElementById('cutoffValueLabel').textContent = `${state.cutoff} Hz`;
+            if (masterFilter && audioCtx) {
+                masterFilter.frequency.setTargetAtTime(state.cutoff, audioCtx.currentTime, 0.08);
+            }
+
+            updateVinylLevel();
+            generatePatternFromSeed(state.seed);
+        }
+
+        // [copia de trabajo] funciones reconstruidas: faltaban en el original
+        function updateVinylLevel() {
+            if (vinylGain && audioCtx) vinylGain.gain.setTargetAtTime(state.genre === 'lofi' ? 0.11 : 0, audioCtx.currentTime, 0.1);
+        }
+        function generatePatternFromSeed(seed) {
+            const rnd = mulberry32(seed);
+            const synth = state.genre === 'synthwave';
+            // Synthwave: La m – Fa – Do – Sol · Lo-fi: acordes de séptima Re m9 – Sol 13 – Do maj7 – La m7
+            state.pattern.progression = synth ? [
+                { name: 'Am', notes: [57, 60, 64, 69], bass: 33 },
+                { name: 'F',  notes: [53, 57, 60, 65], bass: 29 },
+                { name: 'C',  notes: [55, 60, 64, 67], bass: 36 },
+                { name: 'G',  notes: [55, 59, 62, 67], bass: 31 }
+            ] : [
+                { name: 'Dm9',   notes: [50, 53, 57, 60, 64], bass: 38 },
+                { name: 'G13',   notes: [53, 59, 64, 65], bass: 31 },
+                { name: 'Cmaj7', notes: [52, 55, 59, 62], bass: 36 },
+                { name: 'Am7',   notes: [55, 57, 60, 64], bass: 33 }
+            ];
+            const scale = [69, 72, 74, 76, 79, 81, 84];  // pentatónica de La menor
+            state.pattern.leadMelody = Array.from({ length: 16 }, (_, i) => {
+                const play = synth ? (i % 2 === 0 ? rnd() > 0.35 : rnd() > 0.8) : rnd() > 0.72;
+                return play ? scale[Math.floor(rnd() * scale.length)] : null;
+            });
+            state.pattern.kickPattern = Array.from({ length: 16 }, (_, i) => synth ? i % 4 === 0 : (i === 0 || i === 7 || i === 10));
+            state.pattern.snarePattern = Array.from({ length: 16 }, (_, i) => i === 4 || i === 12);
+            state.pattern.hatPattern = Array.from({ length: 16 }, (_, i) => synth ? i % 2 === 0 || i === 14 : i % 2 === 0);
+        }
+
+        // --- INITIALIZATION & DOM LISTENERS ---
+        window.addEventListener('DOMContentLoaded', () => {
+            buildSequencerDots();
+            generatePatternFromSeed(state.seed);
+            renderVisualizer();
+
+            // Genre Buttons
+            document.getElementById('genreLofiBtn').addEventListener('click', () => selectGenre('lofi'));
+            document.getElementById('genreSynthBtn').addEventListener('click', () => selectGenre('synthwave'));
+
+            // Transport Play & Regenerate
+            document.getElementById('playTrackBtn').addEventListener('click', togglePlayback);
+            document.getElementById('regenerateBtn').addEventListener('click', () => {
+                state.seed = Math.floor(1000 + Math.random() * 9000);
+                generatePatternFromSeed(state.seed);
+                // Subtle UI click sound on regenerate
+                triggerSFX('uiclick');
+            });
+
+            // Sliders
+            document.getElementById('bpmSlider').addEventListener('input', (e) => {
+                state.bpm = parseInt(e.target.value, 10);
+                document.getElementById('bpmValueLabel').textContent = `${state.bpm} BPM`;
+            });
+
+            document.getElementById('cutoffSlider').addEventListener('input', (e) => {
+                state.cutoff = parseInt(e.target.value, 10);
+                document.getElementById('cutoffValueLabel').textContent = `${state.cutoff} Hz`;
+                if (masterFilter && audioCtx) {
+                    masterFilter.frequency.setTargetAtTime(state.cutoff, audioCtx.currentTime, 0.04);
+                }
+            });
+
+            document.getElementById('wobbleSlider').addEventListener('input', (e) => {
+                state.wobble = parseInt(e.target.value, 10);
+                document.getElementById('wobbleValueLabel').textContent = `${state.wobble}%`;
+            });
+
+            document.getElementById('transposeSlider').addEventListener('input', (e) => {
+                state.transpose = parseInt(e.target.value, 10);
+                const sign = state.transpose > 0 ? `+${state.transpose}` : state.transpose;
+                document.getElementById('transposeValueLabel').textContent = `${sign} ST`;
+            });
+
+            document.getElementById('masterVolume').addEventListener('input', (e) => {
+                state.masterVol = parseFloat(e.target.value);
+                if (masterGain && audioCtx) {
+                    masterGain.gain.setTargetAtTime(state.masterVol, audioCtx.currentTime, 0.03);
+                }
+            });
+            // SFX Pad Buttons & Individual SFX WAV Download Buttons
+            document.querySelectorAll('.sfx-pad').forEach(pad => {
+                pad.addEventListener('click', (e) => {
+                    if (e.target.closest('.sfx-dl-btn')) return;
+                    const sfxType = pad.getAttribute('data-sfx');
+                    triggerSFX(sfxType);
+                });
+            });
+
+            document.querySelectorAll('.sfx-dl-btn').forEach(dlBtn => {
+                dlBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const sfxType = dlBtn.getAttribute('data-dl-sfx');
+                    downloadSingleSFX(sfxType);
+                });
+            });
+
+            // SFX Modifiers
+            document.getElementById('sfxPitchSlider').addEventListener('input', (e) => {
+                state.sfxPitch = parseFloat(e.target.value);
+                document.getElementById('sfxPitchLabel').textContent = `${state.sfxPitch.toFixed(2)}x`;
+            });
+
+            document.getElementById('sfxSpaceSlider').addEventListener('input', (e) => {
+                state.sfxSpace = parseFloat(e.target.value);
+                document.getElementById('sfxSpaceLabel').textContent = `${Math.round(state.sfxSpace * 100)}%`;
+                if (reverbWetGain && audioCtx) {
+                    reverbWetGain.gain.setTargetAtTime(state.sfxSpace, audioCtx.currentTime, 0.05);
+                }
+            });
+
+            // SFX Pad Buttons
+            document.querySelectorAll('.sfx-pad').forEach(pad => {
+                pad.addEventListener('click', () => {
+                    const sfxType = pad.getAttribute('data-sfx');
+                    triggerSFX(sfxType);
+                });
+            });
+
+            // Keyboard Shortcuts [1 - 6] for SFX Pads & [Space] for Play/Pause
+            const keyMap = {
+                '1': 'whoosh',
+                '2': 'impact',
+                '3': 'riser',
+                '4': 'uiclick',
+                '5': 'glitch',
+                '6': 'braaam'
+            };
+            window.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                if (keyMap[e.key]) {
+                    const sfxType = keyMap[e.key];
+                    triggerSFX(sfxType);
+                    const padEl = document.querySelector(`[data-sfx="${sfxType}"]`);
+                    if (padEl) {
+                        padEl.classList.add('pad-triggered');
+                        setTimeout(() => padEl.classList.remove('pad-triggered'), 160);
+                    }
+                } else if (e.code === 'Space') {
+                    e.preventDefault();
+                    togglePlayback();
+                }
+            });
+
+            // Visualizer Mode Selector
+            document.querySelectorAll('.vis-mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.visMode = btn.getAttribute('data-vismode');
+                    document.querySelectorAll('.vis-mode-btn').forEach(b => {
+                        b.className = 'vis-mode-btn px-2.5 py-1 rounded text-slate-400 hover:text-white transition';
+                    });
+                    btn.className = 'vis-mode-btn px-2.5 py-1 rounded bg-white/15 text-white transition';
+                });
+            });
+
+            // Export Format Toggle (WAV vs Video)
+            const fmtWavBtn = document.getElementById('fmtWavBtn');
+            const fmtVideoBtn = document.getElementById('fmtVideoBtn');
+
+            fmtWavBtn.addEventListener('click', () => {
+                if (state.isRecording) return;
+                state.exportFormat = 'wav';
+                fmtWavBtn.className = 'px-2.5 py-1 rounded-md bg-indigo-600 text-white font-semibold transition';
+                fmtVideoBtn.className = 'px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition';
+            });
+
+            fmtVideoBtn.addEventListener('click', () => {
+                if (state.isRecording) return;
+                state.exportFormat = 'video';
+                fmtVideoBtn.className = 'px-2.5 py-1 rounded-md bg-pink-600 text-white font-semibold transition';
+                fmtWavBtn.className = 'px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition';
+            });
+
+            // Record & Export Trigger
+            document.getElementById('recordBtn').addEventListener('click', toggleRecording);
+            document.getElementById('closeToastBtn').addEventListener('click', () => {
+                document.getElementById('exportToast').classList.add('hidden');
+            });
+
+            // Advanced Export Studio Modal Listeners
+            const exportModal = document.getElementById('exportModal');
+            document.getElementById('openExportModalBtn').addEventListener('click', () => {
+                updateModalDurationBadge();
+                exportModal.classList.remove('hidden');
+            });
+            document.getElementById('closeExportModalBtn').addEventListener('click', () => {
+                if (!state.customExport.isRendering) exportModal.classList.add('hidden');
+            });
+            document.getElementById('cancelExportModalBtn').addEventListener('click', () => {
+                if (!state.customExport.isRendering) exportModal.classList.add('hidden');
+            });
+
+            // Format selection inside modal
+            document.querySelectorAll('.exp-fmt-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    state.customExport.format = card.getAttribute('data-exp-fmt');
+                    document.querySelectorAll('.exp-fmt-card').forEach(c => {
+                        c.className = 'exp-fmt-card text-left p-3 rounded-xl border-2 border-studio-700 bg-studio-800/60 hover:border-indigo-500/40 transition';
+                    });
+                    card.className = 'exp-fmt-card text-left p-3 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 transition';
+                });
+            });
+
+            // Duration & Loop Bars presets inside modal
+            document.querySelectorAll('.dur-preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.dur-preset-btn').forEach(b => {
+                        b.className = 'dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border border-studio-700 bg-studio-800 text-slate-300 hover:text-white transition';
+                    });
+
+                    if (btn.hasAttribute('data-dur-preset')) {
+                        state.customExport.durationMode = 'seconds';
+                        state.customExport.seconds = parseInt(btn.getAttribute('data-dur-preset'), 10);
+                        btn.className = 'dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border-2 border-indigo-500 bg-indigo-500/20 text-white font-semibold transition';
+                    } else if (btn.hasAttribute('data-dur-bars')) {
+                        state.customExport.durationMode = 'bars';
+                        state.customExport.bars = parseInt(btn.getAttribute('data-dur-bars'), 10);
+                        btn.className = 'dur-preset-btn py-2 px-3 rounded-lg text-xs font-mono border-2 border-cyan-500 bg-cyan-500/20 text-white font-semibold transition';
+                    }
+                    updateModalDurationBadge();
+                });
+            });
+
+            document.getElementById('startCustomExportBtn').addEventListener('click', runCustomStudioExport);
+        });
+    </script>
+</body>
+</html>

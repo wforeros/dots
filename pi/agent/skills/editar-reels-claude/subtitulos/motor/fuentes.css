@@ -1,0 +1,21 @@
+/* Fuentes de los subtítulos. SF Compact Display (Apple) NO viene en el kit por su licencia: si la tienes instalada se usa;
+   si copias sus .otf a fuentes/ (SF-Compact-Display-Medium.otf, …-Semibold, …-Bold, …-Heavy, …-Black) también;
+   si no, se usa la fuente del sistema más parecida (Segoe UI en Windows, Helvetica Neue en Mac). Anton y Bebas Neue son libres (OFL). */
+@font-face { font-family: "SFCD"; font-weight: 500; src: local("SF Compact Display Medium"), local("SFCompactDisplay-Medium"), url("fuentes/SF-Compact-Display-Medium.otf") format("opentype"), local("Segoe UI Semibold"), local("Helvetica Neue Medium"), local("HelveticaNeue-Medium"), local("Arial Bold"); }
+@font-face { font-family: "SFCD"; font-weight: 600; src: local("SF Compact Display Semibold"), local("SFCompactDisplay-Semibold"), url("fuentes/SF-Compact-Display-Semibold.otf") format("opentype"), local("Segoe UI Semibold"), local("Helvetica Neue Medium"), local("HelveticaNeue-Medium"), local("Arial Bold"); }
+@font-face { font-family: "SFCD"; font-weight: 700; src: local("SF Compact Display Bold"), local("SFCompactDisplay-Bold"), url("fuentes/SF-Compact-Display-Bold.otf") format("opentype"), local("Segoe UI Bold"), local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"); }
+@font-face { font-family: "SFCD"; font-weight: 800; src: local("SF Compact Display Heavy"), local("SFCompactDisplay-Heavy"), url("fuentes/SF-Compact-Display-Heavy.otf") format("opentype"), local("Segoe UI Black"), local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"); }
+@font-face { font-family: "SFCD"; font-weight: 900; src: local("SF Compact Display Black"), local("SFCompactDisplay-Black"), url("fuentes/SF-Compact-Display-Black.otf") format("opentype"), local("Segoe UI Black"), local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"); }
+@font-face { font-family: "Anton"; src: url("fuentes/anton-400.woff2") format("woff2"); font-weight: 400; }
+@font-face { font-family: "Bebas Neue"; src: url("fuentes/BebasNeue-Regular.ttf") format("truetype"); font-weight: 400; }
+
+html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+#lienzo { position: relative; overflow: hidden; }
+#lienzo .grupo { position: absolute; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; text-align: center; visibility: hidden; }
+#lienzo .w { margin: 0 calc(var(--hueco, .26em) / 2); display: inline-flex; align-items: center; white-space: nowrap; will-change: transform, opacity, filter; }
+#lienzo .ch { display: inline-block; white-space: pre; }
+#lienzo .ico { display: inline-block; flex: none; object-fit: contain; }
+#lienzo .chip { position: absolute; left: 50%; display: inline-flex; align-items: center; white-space: nowrap; }
+#lienzo .chip img { display: block; object-fit: contain; }
+#lienzo .fila { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; width: 100%; }
+#degradado { position: absolute; left: 0; right: 0; bottom: 0; pointer-events: none; opacity: 0; }

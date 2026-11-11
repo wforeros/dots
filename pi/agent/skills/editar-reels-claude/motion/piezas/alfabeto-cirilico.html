@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Pieza «alfabeto-cirilico» · Pantalla completa: la tabla del alfabeto cirílico (imagen) con un recuadro coral
+     en las letras que se ven iguales que en latín (А Е Р О); cada recuadro aparece cuando se dice esa letra.
+     Parámetros: imagen, titulo, sub, pie, marcas [{letra, x, y}] (x/y en % de la imagen), tiempos (s de cada marca), duracion. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<script src="../motor/motor.js"></script>
+<style>
+.tit{ position:absolute; font:700 86px var(--fuente); letter-spacing:-.03em; color:#F6F4F1; white-space:nowrap; }
+.tit em{ font-family:var(--serif, serif); font-style:italic; font-weight:400; color:var(--acento); }
+.sub{ position:absolute; font:600 38px var(--fuente); color:rgba(246,244,241,.62); white-space:nowrap; }
+.caja{ position:absolute; left:40px; width:1000px; background:#fff; border-radius:26px;
+  box-shadow:0 40px 90px rgba(0,0,0,.65), 0 0 0 2px rgba(255,255,255,.12); }
+.caja img{ display:block; width:100%; border-radius:26px; }
+.anillo{ position:absolute; border:5px solid var(--acento); border-radius:18px; opacity:0; transform-origin:50% 50%; }
+.pie{ position:absolute; font:600 34px var(--fuente); color:rgba(246,244,241,.85); white-space:nowrap; }
+.pie b{ color:var(--acento); font-weight:700; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 9.1, "imagen": "_recursos/alfabeto-cirilico.jpg",
+  "titulo": "El alfabeto <em>cirílico</em>", "sub": "Se ve idéntico. No lo es.",
+  "pie": "<b>А Е Р О</b> se ven iguales… pero son otros caracteres",
+  "marcas": [{ "letra": "A", "x": 5.5, "y": 7.2 }, { "letra": "E", "x": 61.2, "y": 7.2 }, { "letra": "P", "x": 94.4, "y": 28.6 }, { "letra": "O", "x": 72.3, "y": 28.6 }],
+  "tiempos": [3.72, 4.22, 5.20, 5.74] }
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'marca', trama: { tipo: 'puntos', tamano: 44, intensidad: .5 }, halo: .22 }, (MG) => {
+  const { k, curvas: C } = MG, D = P.duracion;
+  const ANCHO_IMG = 1000, ALTO_IMG = ANCHO_IMG * 391 / 660;     // proporción de la tabla original
+  const Y_IMG = (H - (ALTO_IMG + 320)) / 2 + 150;               // el bloque queda centrado, sin pegarse a los bordes
+
+  const capaFondo = document.querySelector('.mg-fondo'), capaVista = document.querySelector('.mg-vista');
+  const tit = MG.el(`<div class="tit">${P.titulo}</div>`);
+  const sub = MG.el(`<div class="sub">${P.sub}</div>`);
+  const pie = MG.el(`<div class="pie">${P.pie}</div>`);
+  const caja = MG.el(`<div class="caja"><img src="${P.imagen}" alt="Alfabeto cirílico"></div>`);
+  const u = ANCHO_IMG / 660;                                    // escala imagen original → pantalla
+  const marcas = P.marcas.map((m, i) => {
+    const an = document.createElement('div'); an.className = 'anillo';
+    an.style.width = (62 * u) + 'px'; an.style.height = (56 * u) + 'px';
+    an.style.marginLeft = (-31 * u) + 'px'; an.style.marginTop = (-28 * u) + 'px';
+    an.style.left = m.x + '%'; an.style.top = m.y + '%';
+    caja.append(an);
+    return { an, t: P.tiempos[i] ?? (1 + i * 0.5) };
+  });
+  return (t) => {
+    const venta = C.entradaCubica(k(t, D - 0.55, D - 0.05));
+    const entra = C.salidaCubica(k(t, 0, 0.3));                  // no arranca en negro: se funde con el vídeo
+    capaFondo.style.opacity = entra; capaVista.style.opacity = entra;
+    const e1 = MG.entra(tit, t, 0.02, { d: 0.55, dy: -70, escala0: 1, curva: 'salidaExpo', base: 5 });
+    MG.pon(tit, 44 + e1.x, Y_IMG - 190 + e1.y);
+    const e2 = MG.entra(sub, t, 0.22, { d: 0.5, dy: -46, escala0: 1, curva: 'salidaExpo', base: 5 });
+    MG.pon(sub, 46 + e2.x, Y_IMG - 92 + e2.y);
+    const e3 = MG.entra(caja, t, 0.10, { d: 0.7, dy: 70, escala0: 0.96, curva: 'salidaQuint', base: 5 });
+    MG.pon(caja, e3.x, Y_IMG + e3.y, e3.s);
+    marcas.forEach(({ an, t: tm }) => {
+      const r = C.rebote(k(t, tm - 0.15, tm + 0.55));
+      an.style.opacity = k(t, tm - 0.15, tm + 0.05);
+      an.style.transform = `scale(${0.5 + 0.5 * r})`;
+    });
+    const e4 = MG.entra(pie, t, 5.95, { d: 0.5, dy: 26, escala0: 1, curva: 'salidaQuint', base: 4 });
+    MG.pon(pie, 44 + e4.x, Y_IMG + ALTO_IMG + 54 + e4.y);
+    if (venta > 0) [tit, sub, pie, caja, ...marcas.map((m) => m.an)].forEach((el) => {
+      el.style.opacity = Math.min(+el.style.opacity || 1, 1 - venta); MG.desenfoca(el, 0, venta * 9);
+    });
+    MG.camara(t, 1, 1.025, W / 2, H / 2);
+  };
+});
+</script>
+</body></html>

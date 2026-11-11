@@ -1,0 +1,2 @@
+Logos de svgl.app (marcas registradas de sus dueños; solo para referirse a cada marca).
+Inter Tight 700 (SIL OFL 1.1, vía fontsource). three.js r170 addons TTFLoader/FontLoader/TextGeometry/opentype (MIT).

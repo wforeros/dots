@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Estilo «titulo-cinetico» · Viegas IA · Motion Lab
+     Técnica: planos de color plano con UNA palabra gigante que entra por letras (salidaExpo), marco HUD fijo y final acelerado.
+     Medido en la referencia: 7 planos en 15 s, los últimos de 0,23–0,47 s antes de frenar en el cierre.
+     Formato: #16x9 · #9x16 · #1x1 · #4x5 · Tema: noche-azul. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<link rel="stylesheet" href="../motor/temas/noche-azul.css">
+<script src="../motor/motor.js"></script>
+<style>
+.plano{ position:absolute; left:0; top:0; overflow:hidden; }
+.pal{ position:absolute; left:0; width:100%; text-align:center; font-weight:800; letter-spacing:-.05em; line-height:.85; white-space:nowrap; font-family:var(--fuente); }
+.pal span{ display:inline-block; }
+.hud{ position:absolute; font:500 22px var(--mono); letter-spacing:.14em; text-transform:uppercase; white-space:nowrap; mix-blend-mode:difference; color:#fff; }
+.esq{ position:absolute; width:34px; height:34px; border-color:#fff; border-style:solid; mix-blend-mode:difference; }
+.cierre{ position:absolute; display:flex; align-items:center; gap:30px; white-space:nowrap; }
+.cierre .ic{ width:130px; height:130px; display:grid; place-items:center; filter:drop-shadow(0 0 40px rgba(217,119,87,.45)); }
+.cierre .ic svg{ width:120px; }   /* logo de Claude SIEMPRE en coral #D97757 */
+.cierre b{ font:800 130px var(--fuente); letter-spacing:-.05em; color:var(--texto); }
+.sub{ position:absolute; left:0; text-align:center; font:400 64px var(--serif); font-style:italic; color:var(--brillo); white-space:nowrap; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{
+  "formato": "9x16",
+  "duracion": 4.2,
+  "planos": [
+    { "palabra": "SILENCIOS", "fondo": "#08090C", "color": "#F5F7FA", "dur": 0.9 },
+    { "palabra": "TEXTOS",    "fondo": "#3B82F6", "color": "#08090C", "dur": 0.8 },
+    { "palabra": "MOTION",    "fondo": "#F3F1EC", "color": "#2F6FE0", "dur": 0.8 }
+  ],
+  "marca": "Claude Code",
+  "sub": "edita por ti",
+  "logo": true,
+  "hudIzq": "@tuusuario",
+  "hudDer": "reel 01"
+}
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H, VERT, LOGO_V } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'marca', trama: { tipo: 'nada' }, halo: .25 }, (MG) => {
+  const { k, lerp, curvas: C } = MG;
+  let acc = 0;
+  const planos = P.planos.map((p) => {
+    const el = MG.el(`<div class="plano" style="width:${W}px;height:${H}px;background:${p.fondo}"><div class="pal" style="color:${p.color}">${[...p.palabra].map((l) => `<span>${l === ' ' ? '&nbsp;' : l}</span>`).join('')}</div></div>`);
+    const pal = el.firstChild, fs = Math.min(W * 0.86 / (p.palabra.length * 0.66), H * 0.42);
+    pal.style.fontSize = fs + 'px'; pal.style.width = W + 'px'; pal.style.top = (H / 2 - fs * 0.43) + 'px';
+    const o = { el, pal, sp: [...pal.children], t0: acc, t1: acc + p.dur }; acc += p.dur; return o;
+  });
+  const tC = acc;
+  const cierre = MG.el(`<div class="cierre">${P.logo ? `<div class="ic">${EST.LOGO_CLAUDE()}</div>` : ''}<b>${P.marca}</b></div>`);
+  const sub = MG.el(`<div class="sub">${P.sub}</div>`); sub.style.width = W + 'px';
+  const m = 46;
+  const hud = [MG.el(`<div class="hud">${P.hudIzq}</div>`), MG.el(`<div class="hud">${P.hudDer}</div>`), MG.el(`<div class="hud tc"></div>`), MG.el(`<div class="hud n"></div>`)];
+  MG.pon(hud[0], m + 50, m + 4); MG.pon(hud[1], W - m - 50 - hud[1].offsetWidth, m + 4);
+  const esq = [0, 1, 2, 3].map((i) => { const e = MG.el(`<div class="esq"></div>`); e.style.borderWidth = `${i < 2 ? 3 : 0}px ${i % 2 ? 3 : 0}px ${i >= 2 ? 3 : 0}px ${i % 2 ? 0 : 3}px`;
+    MG.pon(e, i % 2 ? W - m - 34 : m, i < 2 ? m : H - m - 34); return e; });
+  return (t) => {
+    let n = 0;
+    planos.forEach((p, i) => {
+      const on = t >= p.t0 && t < p.t1; p.el.style.display = on ? '' : 'none'; if (on) n = i + 1;
+      if (!on) return;
+      const largo = p.t1 - p.t0, paso = largo < .5 ? .0 : .04;
+      p.sp.forEach((s, j) => { const e = MG.entra(s, t, p.t0 + j * paso, { d: largo < .5 ? .2 : .5, dy: H * .25, escala0: 1, curva: 'salidaExpo', base: 10 }); s.style.transform = `translateY(${e.y}px)`; });
+      const z = lerp(1, 1.06, k(t, p.t0, p.t1));   // empuje continuo dentro de cada plano
+      p.pal.style.transform = `scale(${z})`;
+    });
+    const ec = MG.entra(cierre, t, tC + .05, { d: .7, dy: 0, escala0: .8, curva: 'rebote' });
+    MG.pon(cierre, W / 2 - cierre.offsetWidth / 2, H / 2 - cierre.offsetHeight / 2 - 40, ec.s);
+    const es = MG.entra(sub, t, tC + .35, { d: .6, dy: 30, curva: 'salidaExpo' }); MG.pon(sub, 0, H / 2 + 70 + es.y);
+    hud[2].textContent = `TC 00:00:${String(Math.floor(t)).padStart(2, '0')}:${String(Math.floor(t * 30) % 30).padStart(2, '0')}`;
+    hud[3].textContent = `${String(Math.min(n || planos.length + 1, planos.length + 1)).padStart(2, '0')} / ${String(planos.length + 1).padStart(2, '0')}`;
+    MG.pon(hud[2], m + 50, H - m - 30); MG.pon(hud[3], W - m - 50 - hud[3].offsetWidth, H - m - 30);
+    MG.camara(t, 1, 1.03);
+  };
+});
+</script>
+</body></html>

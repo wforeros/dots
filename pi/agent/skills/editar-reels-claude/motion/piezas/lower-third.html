@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Estilo «lower-third» · Viegas IA · Motion Lab
+     Técnica: rótulo de presentador (nombre + cargo) abajo a la izquierda con barra de acento que crece, y título de serie tipo terminal tecleado arriba.
+     Inspirado en los episodios de entrevista con rótulo blanco y título monoespaciado. Diseño propio Viegas IA.
+     "video": pon el vídeo del presentador; sin vídeo se usa un fondo de muestra (silueta). Nunca tapa la cara: zona izquierda-baja.
+     Formato: #16x9 · #9x16 · #1x1 · #4x5 · Tema: noche-azul. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<link rel="stylesheet" href="../motor/temas/noche-azul.css">
+<script src="../motor/motor.js"></script>
+<style>
+.plato{ position:absolute; inset:0; background:radial-gradient(60% 70% at 62% 40%, #1E2B4F, #0A0F20 70%); }
+.silueta{ position:absolute; width:560px; height:760px; border-radius:280px 280px 60px 60px; background:linear-gradient(180deg,#2A3B66,#141D36); }
+.silueta::before{ content:''; position:absolute; left:50%; top:-250px; width:300px; height:300px; margin-left:-150px; border-radius:50%; background:#2A3B66; }
+.rot{ position:absolute; display:flex; overflow:hidden; border-radius:10px; box-shadow:0 20px 60px rgba(0,2,12,.5); }
+.rot .barra{ width:12px; background:var(--acento); }
+.rot .caja{ background:#F5F7FA; padding:18px 30px 18px 24px; white-space:nowrap; }
+.rot b{ display:block; font:700 46px var(--fuente); letter-spacing:-.02em; color:#08090C; }
+.rot small{ display:block; font:500 26px var(--fuente); color:#4B5565; margin-top:2px; }
+.serie{ position:absolute; font:500 44px var(--mono); white-space:nowrap; }
+.serie .a{ background:var(--acento); color:#fff; padding:4px 14px; }
+.serie .b{ background:rgba(8,9,12,.75); color:#fff; padding:4px 14px; display:inline-block; margin-top:8px; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{
+  "formato": "9x16",
+  "duracion": 4.5,
+  "transparente": true,
+  "video": "",
+  "nombre": "Tu Nombre",
+  "cargo": "Lo que haces · @tuusuario",
+  "serie": "",
+  "episodio": "",
+  "tRotulo": [0.2, 3.8],
+  "tSerie": [9, 9]
+}
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H, VERT } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: P.transparente ? 'transparente' : 'marca' }, (MG) => {
+  const { k, lerp, curvas: C } = MG;
+  if (P.video) { const c = MG.tarjeta(P.video, W, H, 0, { desde: 0, bucle: true }); c.style.borderRadius = '0'; c.querySelector('video').style.cssText = 'width:100%;height:100%;object-fit:cover'; }
+  else if (!P.transparente) { MG.el(`<div class="plato" style="width:${W}px;height:${H}px"></div>`); const s = MG.el(`<div class="silueta"></div>`); MG.pon(s, W * (VERT ? .5 : .6) - 280, H - 760 + (VERT ? -200 : 120)); }
+  const rot = MG.el(`<div class="rot"><span class="barra"></span><div class="caja"><b>${P.nombre}</b><small>${P.cargo}</small></div></div>`);
+  const caja = rot.querySelector('.caja'), nb = rot.querySelector('b'), ns = rot.querySelector('small');
+  const serie = MG.el(`<div class="serie"><span class="a"></span><br><span class="b"></span></div>`), sa = serie.querySelector('.a'), sb = serie.querySelector('.b');
+  const cw = caja.offsetWidth;
+  const m = VERT ? 70 : 90, yb = P.y ?? (H - (VERT ? 560 : 230));   // 9:16: por encima de los botones de la red, lejos de la cara   // por encima de la zona de subtítulos
+  return (t) => {
+    const [a, b] = P.tRotulo;
+    // entrada: la caja se abre (salidaQuint 0,5 s) y los textos llegan 0,1 s después; salida inversa con entradaCubica
+    const abre = C.salidaQuint(k(t, a, a + .5)) * (1 - C.entradaCubica(k(t, b, b + .45)));
+    caja.style.width = (cw * abre) + 'px'; caja.style.paddingRight = (30 * abre) + 'px'; caja.style.paddingLeft = (24 * abre) + 'px';
+    const e1 = C.salidaExpo(k(t, a + .1, a + .6)) * (1 - C.entradaCubica(k(t, b - .1, b + .25))), e2 = C.salidaExpo(k(t, a + .2, a + .7)) * (1 - C.entradaCubica(k(t, b - .15, b + .2)));
+    nb.style.transform = `translateX(${(1 - e1) * -40}px)`; nb.style.opacity = e1; ns.style.transform = `translateX(${(1 - e2) * -40}px)`; ns.style.opacity = e2;
+    rot.style.opacity = k(t, a, a + .05) * (1 - k(t, b + .4, b + .45));
+    MG.pon(rot, m, yb);
+    // título de serie tecleado (arriba a la izquierda, también lejos de la cara)
+    const [c, d] = P.tSerie;
+    sa.textContent = P.serie.slice(0, Math.round(P.serie.length * k(t, c, c + .5)));
+    sb.textContent = P.episodio.slice(0, Math.round(P.episodio.length * k(t, c + .5, c + 1.6))) + (Math.floor(t * 3) % 2 ? '▌' : ' ');
+    serie.style.opacity = (P.serie ? 1 : 0) * k(t, c, c + .05) * (1 - k(t, d, d + .2)); sa.style.display = sa.textContent ? '' : 'none';
+    MG.pon(serie, m, VERT ? 260 : 120);
+    MG.camara(t, 1, 1.03);
+  };
+});
+</script>
+</body></html>

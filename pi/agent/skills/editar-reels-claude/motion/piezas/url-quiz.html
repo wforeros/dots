@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Pieza «url-quiz» · Dos URLs en pantalla: una ARRIBA (sobre la cabeza, bajo los botones de la red)
+     y otra ABAJO (justo encima de la zona segura). Una es la correcta y se revela cuando lo dice.
+     Parámetros: arriba, abajo (los dominios tal cual), etiquetaArriba, etiquetaAbajo, correcta (arriba|abajo),
+     revelar (segundo de la pieza en que aparece ✓/✗; 0 = nunca), vacio (true = solo los huecos, sin dominio),
+     yArriba, yAbajo (px), duracion, formato. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<script src="../motor/motor.js"></script>
+<style>
+.fila{ position:absolute; width:960px; height:104px; display:flex; align-items:center; gap:18px; padding:0 22px 0 20px; border-radius:28px; white-space:nowrap;
+  background:linear-gradient(180deg, rgba(28,27,33,.88), rgba(10,9,13,.86)); border:2px solid rgba(255,255,255,.16);
+  box-shadow:0 24px 54px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.10); }
+.et{ flex:none; font:800 21px var(--fuente); letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.58); padding:9px 15px; border-radius:13px; background:rgba(255,255,255,.07); }
+.url{ flex:1 1 auto; font:600 46px var(--mono); letter-spacing:-.01em; color:#F6F4F1; }
+.url.hueco{ color:rgba(255,255,255,.26); letter-spacing:.24em; }
+.badge{ flex:none; font:800 21px var(--fuente); letter-spacing:.06em; padding:10px 17px; border-radius:999px; opacity:0; }
+.badge.ok{ background:#22C55E; color:#05230F; }
+.badge.mal{ background:#EF4444; color:#2A0505; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 10.0, "etiquetaArriba": "Opción 1", "etiquetaAbajo": "Opción 2",
+  "arriba": "amazon.com", "abajo": "arnazon.com", "correcta": "arriba", "revelar": 6.35,
+  "yArriba": 232, "yAbajo": 1424, "vacio": false }
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'transparente' }, (MG) => {
+  const { k, curvas: C } = MG, D = P.duracion;
+
+  const crea = (et, url, dir) => {
+    const el = MG.el(`<div class="fila"><span class="et">${et}</span><span class="url">${url}</span><span class="badge"></span></div>`);
+    if (P.vacio) { el.querySelector('.url').classList.add('hueco'); el.style.borderStyle = 'dashed'; }
+    return el;
+  };
+  const arriba = crea(P.etiquetaArriba, P.vacio ? '···' : P.arriba);
+  const abajo = crea(P.etiquetaAbajo, P.vacio ? '···' : P.abajo);
+
+  return (t) => {
+    const venta = C.entradaCubica(k(t, D - 0.5, D - 0.05));      // salida: fundido + desenfoque suave
+    [[arriba, P.yArriba, -120, 'arriba', 0.08], [abajo, P.yAbajo, 120, 'abajo', 0.20]].forEach(([el, y, dy, nombre, t0]) => {
+      const e = MG.entra(el, t, t0, { d: 0.62, dy, escala0: 0.97, curva: 'salidaExpo', base: 6 });
+      MG.pon(el, 0 + e.x, y + e.y + venta * 26, e.s);
+      const ok = P.correcta === nombre;
+      const r = C.rebote(k(t, P.revelar, P.revelar + 0.6));
+      const badge = el.querySelector('.badge'), col = ok ? '34,197,94' : '239,68,68';
+      const aparece = P.revelar > 0 && !P.vacio ? k(t, P.revelar + 0.12, P.revelar + 0.34) : 0;
+      if (aparece > 0) {
+        badge.className = 'badge ' + (ok ? 'ok' : 'mal');
+        badge.textContent = ok ? '✓ CORRECTA' : '✗ FALSA';
+        badge.style.opacity = aparece;
+        badge.style.transform = `scale(${0.65 + 0.35 * r})`;
+        el.style.borderColor = `rgba(${col},${0.3 + 0.55 * aparece})`;
+        el.style.boxShadow = `0 24px 54px rgba(0,0,0,.55), 0 0 ${30 * aparece}px rgba(${col},.5), inset 0 1px 0 rgba(255,255,255,.10)`;
+        el.querySelector('.url').style.color = ok ? '#F6F4F1' : 'rgba(246,244,241,.62)';
+      }
+      if (venta > 0) { el.style.opacity = Math.min(+el.style.opacity || 1, 1 - venta); MG.desenfoca(el, 0, venta * 9); }
+    });
+    MG.camara(t, 1, 1.02, W / 2, H * 0.35);
+  };
+});
+</script>
+</body></html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Pieza «letra-cirilica» · Compara dos URLs casi idénticas y marca la PRIMERA letra de cada una:
+     la de arriba es cirílica (falsa) y la de abajo es latina (la buena). Va debajo de la barbilla.
+     Parámetros: falsa, buena, etiquetaFalsa, etiquetaBuena, y, duracion, formato. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<script src="../motor/motor.js"></script>
+<style>
+.card{ position:absolute; left:70px; width:940px; border-radius:34px; padding:34px 40px 30px;
+  background:linear-gradient(180deg, rgba(28,27,33,.9), rgba(10,9,13,.88)); border:2px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 70px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.09); }
+.fila{ display:flex; align-items:center; gap:20px; padding:14px 0; white-space:nowrap; }
+.pri{ flex:none; width:96px; height:96px; border-radius:50%; display:grid; place-items:center; font:600 62px var(--mono); }
+.pri.mal{ color:#FF8A8A; border:4px solid #EF4444; box-shadow:0 0 30px rgba(239,68,68,.45); }
+.pri.bien{ color:#8BF0B0; border:4px solid #22C55E; box-shadow:0 0 30px rgba(34,197,94,.40); }
+.res{ font:600 58px var(--mono); color:#F6F4F1; letter-spacing:-.01em; }
+.et{ margin-left:auto; font:800 24px var(--fuente); letter-spacing:.08em; text-transform:uppercase; padding:8px 16px; border-radius:12px; }
+.et.mal{ background:rgba(239,68,68,.18); color:#FF9C9C; }
+.et.bien{ background:rgba(34,197,94,.18); color:#96F0B6; }
+.sep{ height:2px; background:rgba(255,255,255,.10); margin:6px 0; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 10.6, "falsa": "аmazon.com", "buena": "amazon.com",
+  "etiquetaFalsa": "A cirílica · falsa", "etiquetaBuena": "A latina · real", "y": 1030 }
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'transparente' }, (MG) => {
+  const { k, curvas: C } = MG, D = P.duracion;
+  const fila = (url, lbl, tipo) => `<div class="fila"><span class="pri ${tipo}">${url[0]}</span><span class="res">${url.slice(1)}</span><span class="et ${tipo}">${lbl}</span></div>`;
+  const card = MG.el(`<div class="card">${fila(P.falsa, P.etiquetaFalsa, 'mal')}<div class="sep"></div>${fila(P.buena, P.etiquetaBuena, 'bien')}</div>`);
+  const [f1, f2] = card.querySelectorAll('.fila');
+  return (t) => {
+    const venta = C.entradaCubica(k(t, D - 0.5, D - 0.05));
+    const e = MG.entra(card, t, 0.08, { d: 0.6, dy: 90, escala0: 0.96, curva: 'salidaExpo', base: 5 });
+    MG.pon(card, e.x, P.y + e.y + venta * 24, e.s);
+    [[f1, 0.45], [f2, 1.15]].forEach(([f, t0]) => {
+      const r = C.rebote(k(t, t0, t0 + 0.6)), s = MG.entra(f, t, t0, { d: 0.45, dy: 24, escala0: 1, curva: 'salidaQuint', base: 4 });
+      f.style.transform = `translateY(${s.y}px)`;
+      f.querySelector('.pri').style.transform = `scale(${0.6 + 0.4 * r})`;
+    });
+    if (venta > 0) { card.style.opacity = Math.min(+card.style.opacity || 1, 1 - venta); MG.desenfoca(card, 0, venta * 9); }
+    MG.camara(t, 1, 1.02, W / 2, P.y + 130);
+  };
+});
+</script>
+</body></html>

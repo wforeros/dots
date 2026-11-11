@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Pieza «chrome-bar» · Dos modos:
+     «comparar»: la misma URL escrita en la barra de Chrome, arriba y abajo (para ver que son idénticas). Sello opcional.
+     «hover»: un correo con un enlace; el cursor se pone encima y abajo aparece la URL real a la que lleva.
+     Parámetros: modo, arriba, abajo, yArriba, yAbajo, sello, selloT, hover (URL real), y, duracion, formato. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<script src="../motor/motor.js"></script>
+<style>
+.bar{ position:absolute; width:960px; height:100px; display:flex; align-items:center; gap:14px; padding:0 26px; border-radius:999px;
+  background:linear-gradient(180deg, rgba(34,33,40,.92), rgba(14,13,18,.9)); border:2px solid rgba(255,255,255,.16);
+  box-shadow:0 24px 54px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.10); white-space:nowrap; }
+.cand{ width:26px; height:26px; flex:none; opacity:.75; }
+.proto{ font:500 40px var(--mono); color:rgba(255,255,255,.42); }
+.dom{ font:600 44px var(--mono); color:#F6F4F1; letter-spacing:-.01em; }
+.pts{ margin-left:auto; font:700 34px var(--fuente); color:rgba(255,255,255,.45); }
+.sello{ position:absolute; font:800 62px var(--fuente); letter-spacing:-.02em; color:#0C0B0F; background:#22C55E;
+  padding:20px 34px; border-radius:22px; box-shadow:0 24px 60px rgba(0,0,0,.5); white-space:nowrap; opacity:0; }
+.card{ position:absolute; left:70px; width:940px; border-radius:30px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(30,29,36,.94), rgba(12,11,16,.92)); border:2px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 70px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08); }
+.cab{ display:flex; align-items:center; gap:14px; padding:26px 30px 14px; font:700 30px var(--fuente); color:#F6F4F1; }
+.cab i{ font-style:normal; font:600 26px var(--mono); color:rgba(255,255,255,.45); }
+.cuerpo{ padding:0 30px 26px; font:500 32px/1.45 var(--fuente); color:rgba(255,255,255,.72); }
+.enlace{ color:#7DB6FF; text-decoration:underline; }
+.estado{ padding:18px 30px; font:500 30px var(--mono); color:rgba(255,255,255,.9); background:rgba(0,0,0,.42); border-top:2px solid rgba(255,255,255,.10); opacity:0; }
+.estado b{ color:var(--acento); font-weight:600; }
+.estado s{ text-decoration:none; color:rgba(255,255,255,.35); margin-right:10px; }
+.cursor{ position:absolute; width:46px; height:62px; opacity:0; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 15.9, "modo": "comparar", "arriba": "apple.com", "abajo": "аррle.com",
+  "yArriba": 232, "yAbajo": 1424, "sello": "100 % iguales", "selloT": 12.35,
+  "hover": "аpple.com", "y": 1115, "de": "Soporte Apple" }
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H } = EST;
+const CANDADO = '<svg class="cand" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+const FLECHA = '<svg class="cursor" viewBox="0 0 20 27"><path d="M1.5 1.5v20.6l5.3-5.1 3.4 8 3.6-1.5-3.4-7.9h7.3Z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'transparente' }, (MG) => {
+  const { k, curvas: C, lerp } = MG, D = P.duracion;
+
+  if (P.modo === 'hover') {
+    // ---------- correo con enlace + cursor + URL real (lo que se ve al pasar el cursor)
+    const card = MG.el(`<div class="card">
+      <div class="cab">✉ ${P.de}<i>· ahora</i></div>
+      <div class="cuerpo">Hola: hemos detectado un acceso raro.<br><span class="enlace">Verifica tu cuenta</span> antes de 24 h.</div>
+      <div class="estado"><s>→</s><b>${P.hover}</b>/verificar</div></div>`);
+    const enlace = card.querySelector('.enlace'), estado = card.querySelector('.estado');
+    const cur = MG.el(FLECHA);
+    const caja = () => ({ x: 70 + enlace.offsetLeft + enlace.offsetWidth - 24, y: P.y + card.offsetTop + 150 });
+    return (t) => {
+      const venta = C.entradaCubica(k(t, D - 0.5, D - 0.05));
+      const e = MG.entra(card, t, 0.08, { d: 0.62, dy: 90, escala0: 0.96, curva: 'salidaExpo', base: 5 });
+      MG.pon(card, e.x, P.y + e.y + venta * 24, e.s);
+      const c = caja(), entrada = C.entradaSalidaQuint(k(t, 0.9, 2.0));
+      const x = lerp(c.x + 260, c.x, entrada), y = lerp(c.y + 220, c.y, entrada);
+      const pulso = Math.sin(Math.PI * k(t, 2.0, 2.25));
+      cur.style.opacity = k(t, 0.9, 1.2);
+      MG.pon(cur, x, y, 1 - pulso * 0.09);
+      const pe = C.salidaQuint(k(t, 2.15, 2.75));
+      estado.style.opacity = pe;
+      estado.style.transform = `translateY(${(1 - pe) * 16}px)`;
+      if (venta > 0) { card.style.opacity = Math.min(+card.style.opacity || 1, 1 - venta); cur.style.opacity = Math.min(+cur.style.opacity, 1 - venta); MG.desenfoca(card, 0, venta * 9); }
+      MG.camara(t, 1, 1.02, W / 2, P.y + 160);
+    };
+  }
+
+  // ---------- dos barras de Chrome idénticas, arriba y abajo
+  const barra = (url) => MG.el(`<div class="bar">${CANDADO}<span class="proto">https://</span><span class="dom">${url}</span><span class="pts">⋮</span></div>`);
+  const a = barra(P.arriba), b = barra(P.abajo);
+  const sello = P.sello ? MG.el(`<div class="sello">${P.sello}</div>`) : null;
+  return (t) => {
+    const venta = C.entradaCubica(k(t, D - 0.5, D - 0.05));
+    [[a, P.yArriba, -110, 0.10], [b, P.yAbajo, 110, 0.22]].forEach(([el, y, dy, t0]) => {
+      const e = MG.entra(el, t, t0, { d: 0.6, dy, escala0: 0.97, curva: 'salidaExpo', base: 5 });
+      MG.pon(el, e.x, y + e.y + venta * 24, e.s);
+      if (venta > 0) { el.style.opacity = Math.min(+el.style.opacity || 1, 1 - venta); MG.desenfoca(el, 0, venta * 9); }
+    });
+    if (sello) {
+      const r = C.rebote(k(t, P.selloT, P.selloT + 0.7)), s = 0.6 + 0.4 * r;
+      sello.style.opacity = k(t, P.selloT, P.selloT + 0.25);
+      MG.pon(sello, (W - sello.offsetWidth) / 2, 1210, s, `rotate(${-6 + (1 - r) * 8}deg)`);
+      if (venta > 0) { sello.style.opacity = Math.min(+sello.style.opacity || 1, 1 - venta); MG.desenfoca(sello, 0, venta * 9); }
+    }
+    MG.camara(t, 1, 1.02, W / 2, H * 0.35);
+  };
+});
+</script>
+</body></html>

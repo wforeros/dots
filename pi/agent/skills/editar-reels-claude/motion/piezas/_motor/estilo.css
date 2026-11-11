@@ -1,0 +1,48 @@
+/* estilo.css · Motion Graphics Viegas
+   Tokens de marca. Cambia SOLO estas variables (o las de estilo.json) para otra marca: todo lo demás las usa. */
+:root {
+  --fondo: #0D0C0F;           /* sólido de fondo */
+  --rejilla: #1A181C;         /* líneas de la rejilla */
+  --halo: 217, 119, 87;       /* color del halo (rgb) */
+  --acento: #D97757;          /* coral Viegas / Claude */
+  --acento2: #E78F72;         /* coral claro: palabras clave */
+  --texto: #F4F2EE;
+  --mute: #A39F98;
+  --tarjeta: #18171B;
+  --fuente: 'SF Compact Display', 'SF Pro Display', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'Consolas', 'Cascadia Code', 'SF Mono', monospace;
+  --radio: 16px;
+  /* tokens extra para que los ejemplos sigan la marca (y los temas de motor/temas/) */
+  --tinta: #120a06;           /* texto encima del acento */
+  --tarjeta2: #141217;        /* tarjeta más honda: ventanas, tiras */
+  --superficie: #2A272E;      /* relieves: barras, campos, botones */
+  --claro: 255, 255, 255;     /* brillos y bordes (rgb): en temas claros pasa a negro */
+  --sombra: 0, 0, 0;          /* sombras (rgb) */
+  --fondo-rgb: 13, 12, 15;    /* el fondo en rgb, para velos */
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: var(--ancho, 1920px); height: var(--alto, 1080px); overflow: hidden; background: var(--fondo); color: var(--texto); font-family: var(--fuente); }
+.mg-fondo { position: absolute; inset: 0; background: var(--fondo); }
+.mg-fondo-marca {           /* el fondo de la marca: rejilla 70 px (140 px en 4K) y halo desde abajo */
+  background: radial-gradient(60% 48% at 50% 112%, rgba(var(--halo), .30), rgba(var(--halo), .10) 45%, transparent 72%),
+    linear-gradient(var(--rejilla) 1px, transparent 1px) 0 0/70px 70px, linear-gradient(90deg, var(--rejilla) 1px, transparent 1px) 0 0/70px 70px, var(--fondo); }
+/* degradados animados (escena({ degradado: 'aurora'|'barrido'|'suave' })): los mueve el motor según t */
+.mg-degradado { position: absolute; inset: 0; pointer-events: none; }
+.mg-degradado-suave { background: linear-gradient(120deg, var(--acento), transparent 30%, var(--acento2), transparent 70%, var(--acento)) 0 0/300% 300%; }
+.mg-degradado-aurora { inset: -15%; background: radial-gradient(35% 45% at 25% 30%, var(--acento), transparent 70%), radial-gradient(40% 50% at 75% 70%, var(--acento2), transparent 70%); filter: blur(80px); }
+.mg-degradado-barrido { inset: -50%; background: conic-gradient(from 0deg at 50% 50%, transparent, var(--acento), transparent 30%, var(--acento2), transparent 60%); filter: blur(120px); }
+.mg-fondo-transparente { background: transparent; }
+.mg-vista { position: absolute; inset: 0; perspective: 1800px; }
+.mg-mundo { position: absolute; left: 0; top: 0; transform-style: preserve-3d; }
+.mg-abs { position: absolute; left: 0; top: 0; }
+.mg-tarjeta { border-radius: var(--radio); overflow: hidden; background: var(--tarjeta); box-shadow: 0 26px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.07); }
+.mg-tarjeta video, .mg-tarjeta img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* piezas de marca listas para usar */
+.mg-cristal { display: flex; align-items: center; gap: 18px; padding: 16px 30px 16px 16px; border-radius: 999px; white-space: nowrap;
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); border: 1.5px solid rgba(255,255,255,.16);
+  box-shadow: 0 18px 50px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.10); }
+.mg-chip { display: inline-block; padding: 10px 22px; border-radius: 999px; background: var(--acento); color: #120a06; font-weight: 800; letter-spacing: .12em; white-space: nowrap; }
+.mg-titulo { font-weight: 800; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
+.mg-titulo em { font-style: normal; color: var(--acento2); }
+.mg-sub { color: var(--mute); font-weight: 600; }
+.mg-brillo { box-shadow: 0 0 0 2px var(--acento), 0 0 60px rgba(var(--halo), .45); }

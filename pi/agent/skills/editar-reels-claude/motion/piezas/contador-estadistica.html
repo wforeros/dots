@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Estilo «contador-estadistica» · Viegas IA · Motion Lab
+     Técnica: cifra gigante que cuenta (de A a B) con tipografía monoespaciada, barrido de escaneo y grano; etiqueta y contexto escalonados.
+     Inspirado en la idea «de 5 M a 60 M en seis meses» con números enormes y textura analógica. Diseño propio Viegas IA.
+     Formato: #16x9 · #9x16 · #1x1 · #4x5 · Tema: noche-azul. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<link rel="stylesheet" href="../motor/temas/noche-azul.css">
+<script src="../motor/motor.js"></script>
+<style>
+.num{ position:absolute; left:0; text-align:center; font:500 300px/1 var(--mono); letter-spacing:-.06em; color:var(--texto); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.num .u{ color:var(--brillo); }
+.etq{ position:absolute; left:0; text-align:center; font:500 30px var(--mono); letter-spacing:.3em; text-transform:uppercase; color:var(--brillo); white-space:nowrap; }
+.ctx{ position:absolute; left:0; text-align:center; font:400 64px var(--serif); font-style:italic; color:var(--texto); white-space:nowrap; }
+.desde{ position:absolute; font:500 26px var(--mono); color:var(--mute); white-space:nowrap; }
+.scan{ position:absolute; left:0; height:3px; background:linear-gradient(90deg,transparent,var(--brillo),transparent); box-shadow:0 0 30px var(--acento); }
+.grano{ position:absolute; inset:0; mix-blend-mode:overlay; opacity:.07; }
+.barra{ position:absolute; height:10px; border-radius:5px; background:rgba(var(--claro),.08); overflow:hidden; }
+.barra i{ display:block; height:100%; background:linear-gradient(90deg,var(--acento),var(--brillo)); }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{
+  "formato": "9x16",
+  "duracion": 5,
+  "etiqueta": "Horas ahorradas al mes",
+  "desde": 0,
+  "hasta": 20,
+  "prefijo": "",
+  "sufijo": "+",
+  "tCuenta": [0.6, 2.6],
+  "contexto": "editando con Claude Code"
+}
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H, VERT, lienzo, azar } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'marca', trama: { tipo: 'lineas', tamano: 8, intensidad: .25 }, halo: .3 }, (MG) => {
+  const { k, lerp, curvas: C } = MG;
+  const etq = MG.el(`<div class="etq">${P.etiqueta}</div>`), num = MG.el(`<div class="num"><span class="v"></span><span class="u">${P.sufijo}</span></div>`), ctx = MG.el(`<div class="ctx">${P.contexto}</div>`);
+  [etq, num, ctx].forEach((e) => e.style.width = W + 'px');
+  if (VERT) num.style.fontSize = '230px';
+  const v = num.querySelector('.v');
+  const barra = MG.el(`<div class="barra"><i></i></div>`), bw = Math.min(900, W - 160); barra.style.width = bw + 'px';
+  const scan = MG.el(`<div class="scan"></div>`); scan.style.width = W + 'px';
+  const G = lienzo(MG, Math.round(W / 3), Math.round(H / 3)); G.c.className = 'grano'; G.c.style.width = W + 'px'; G.c.style.height = H + 'px';
+  const img = G.x.createImageData(G.w, G.h);
+  const [t0, t1] = P.tCuenta;
+  return (t) => {
+    const cy = H / 2;
+    const ee = MG.entra(etq, t, .2, { d: .6, dy: 30, curva: 'salidaExpo' }); MG.pon(etq, 0, cy - (VERT ? 240 : 230) + ee.y);
+    const en = MG.entra(num, t, .45, { d: .7, dy: 60, escala0: .9, curva: 'salidaExpo' }); MG.pon(num, 0, cy - 150 + en.y, en.s);
+    // la cifra cuenta con salidaQuint (rápido al principio, se posa al final) + un golpe de escala al llegar
+    MG.contador(v, t, t0, t1, P.desde, P.hasta, { prefijo: P.prefijo, curva: 'salidaQuint' });
+    const golpe = C.rebote(k(t, t1, t1 + .5)); num.style.transform += ` scale(${1 + (1 - golpe) * 0 + (t > t1 ? Math.sin(Math.PI * k(t, t1, t1 + .3)) * .04 : 0)})`;
+    const eb = MG.entra(barra, t, t0 - .1, { d: .4, dy: 0, curva: 'salidaExpo' }); MG.pon(barra, W / 2 - bw / 2, cy + 170);
+    barra.firstChild.style.width = (100 * C.salidaQuint(k(t, t0, t1))) + '%';
+    const ec = MG.entra(ctx, t, t1 + .3, { d: .7, dy: 40, curva: 'rebote' }); MG.pon(ctx, 0, cy + 220 + ec.y);
+    // barrido de escaneo continuo
+    scan.style.top = ((t * 260) % (H + 200) - 100) + 'px';
+    // grano determinista (cambia 24 veces por segundo)
+    const r = azar(1 + Math.floor(t * 24)), d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const g = r() * 255; d[i] = d[i + 1] = d[i + 2] = g; d[i + 3] = 255; }
+    G.x.putImageData(img, 0, 0);
+    MG.camara(t, 1, 1.06);
+  };
+});
+</script>
+</body></html>

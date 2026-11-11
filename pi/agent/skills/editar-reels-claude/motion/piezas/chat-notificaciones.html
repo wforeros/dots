@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Estilo «chat-notificaciones» · Viegas IA · Motion Lab
+     Técnica: conversación con burbujas que entran con rebote, indicador «escribiendo…», tarjeta de resultado y notificaciones que se apilan; fondo de color suave por escena.
+     Inspirado en los anuncios de «compañeros IA» en el chat del equipo (burbujas, tarjetas y notificaciones sobre pasteles). Diseño propio Viegas IA.
+     Formato: #16x9 · #9x16 · #1x1 · #4x5 · Tema: noche-azul. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<link rel="stylesheet" href="../motor/temas/noche-azul.css">
+<script src="../motor/motor.js"></script>
+<style>
+.burb{ position:absolute; width:max-content; max-width:760px; padding:22px 28px; border-radius:28px; font:400 34px/1.35 var(--fuente); white-space:normal; }
+.burb.yo{ background:var(--acento); color:#fff; border-bottom-right-radius:8px; }
+.burb.ia{ background:rgba(var(--claro),.08); border:1px solid rgba(var(--claro),.14); color:var(--texto); border-bottom-left-radius:8px; }
+.av{ position:absolute; width:64px; height:64px; border-radius:50%; display:grid; place-items:center; background:#1A1A1A; }
+.av svg{ width:40px; height:40px; }
+.dots{ position:absolute; display:flex; gap:10px; padding:24px 28px; border-radius:28px; background:rgba(var(--claro),.08); }
+.dots i{ width:14px; height:14px; border-radius:50%; background:var(--brillo); }
+.res{ position:absolute; width:620px; padding:26px; border-radius:24px; background:var(--tarjeta2); border:1px solid rgba(var(--halo),.45); box-shadow:0 30px 80px rgba(0,2,12,.6); }
+.res b{ font:600 34px var(--fuente); color:var(--texto); }
+.res .barra{ height:12px; border-radius:6px; background:rgba(var(--claro),.08); margin-top:18px; overflow:hidden; }
+.res .barra i{ display:block; height:100%; background:linear-gradient(90deg,var(--acento),var(--brillo)); }
+.res small{ display:block; font:500 22px var(--mono); color:var(--mute); margin-top:12px; }
+.not{ position:absolute; width:620px; display:flex; gap:18px; align-items:center; padding:18px 22px; border-radius:22px; background:rgba(245,247,250,.96); color:#0B1120; box-shadow:0 20px 50px rgba(0,2,12,.5); }
+.not .ic{ width:56px; height:56px; border-radius:14px; display:grid; place-items:center; flex:none; }
+.not .ic svg{ width:34px; }
+.not b{ font:600 26px var(--fuente); } .not p{ font:400 24px var(--fuente); color:#4B5565; } .not .h{ margin-left:auto; font:500 20px var(--mono); color:#8A93A3; align-self:flex-start; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{
+  "formato": "9x16",
+  "duracion": 8,
+  "pregunta": "¿Me montas el reel de hoy con subtítulos y música?",
+  "respuesta": "Hecho. He quitado silencios, añadido subtítulos y la música baja cuando hablas.",
+  "resultado": "reel-hoy-final.mp4",
+  "notificaciones": [
+    { "titulo": "Claude Code", "texto": "Exportación lista · 1080p · −14 LUFS", "hora": "ahora" },
+    { "titulo": "Instagram", "texto": "Tu reel ya tiene 1.000 visitas", "hora": "2 min" }
+  ]
+}
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H, VERT, LOGO_V, LOGO_CLAUDE } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'marca', trama: { tipo: 'puntos', tamano: 36, intensidad: .45 }, halo: .3 }, (MG) => {
+  const { k, lerp, curvas: C } = MG;
+  const cx = W / 2, col = VERT ? W - 120 : 980, x0 = cx - col / 2;
+  const yo = MG.el(`<div class="burb yo">${P.pregunta}</div>`), ia = MG.el(`<div class="burb ia">${P.respuesta}</div>`);
+  if (VERT) [yo, ia].forEach((b) => b.style.maxWidth = (col - 100) + 'px');
+  const av = MG.el(`<div class="av">${LOGO_CLAUDE()}</div>`), dots = MG.el(`<div class="dots"><i></i><i></i><i></i></div>`);
+  const res = MG.el(`<div class="res"><b>▶ ${P.resultado}</b><div class="barra"><i></i></div><small class="s"></small></div>`), rs = res.querySelector('.s'), rb = res.querySelector('.barra i');
+  if (VERT) res.style.width = (col - 100) + 'px';
+  const nots = P.notificaciones.map((n, i) => MG.el(`<div class="not"><span class="ic" style="background:${i ? 'linear-gradient(160deg,#93C5FD,#3B82F6)' : '#1A1A1A'}">${i ? LOGO_V() : LOGO_CLAUDE()}</span><div><b>${n.titulo}</b><p>${n.texto}</p></div><span class="h">${n.hora}</span></div>`));
+  if (VERT) nots.forEach((n) => n.style.width = (W - 120) + 'px');
+  const T = { yo: .4, dots: 1.3, ia: 2.6, res: 3.5, sube: 5.6, n: [6.2, 6.8] };
+  return (t) => {
+    const top = VERT ? 300 : 140, sube = C.entradaSalidaQuint(k(t, T.sube, T.sube + .8)) * (VERT ? 0 : 0);
+    const desplaza = C.entradaSalidaQuint(k(t, T.sube, T.sube + .8)) * (VERT ? 260 : 220);
+    const e1 = MG.entra(yo, t, T.yo, { d: .6, dx: 80, dy: 30, escala0: .8, curva: 'rebote' }); MG.pon(yo, x0 + col - yo.offsetWidth + e1.x, top + e1.y - desplaza, e1.s);
+    yo.style.transformOrigin = '100% 100%';
+    const yb = top + yo.offsetHeight + 40 - desplaza;
+    const ea = MG.entra(av, t, T.dots - .1, { d: .5, dy: 0, escala0: .3, curva: 'reboteFuerte' }); MG.pon(av, x0, yb + 10, ea.s);
+    const ed = MG.entra(dots, t, T.dots, { d: .4, dy: 20, curva: 'rebote' }); MG.pon(dots, x0 + 90, yb + ed.y);
+    dots.style.opacity = Math.min(+dots.style.opacity, 1 - k(t, T.ia - .1, T.ia));
+    [...dots.children].forEach((d, j) => d.style.transform = `translateY(${-Math.abs(Math.sin(t * 7 - j * .8)) * 10}px)`);
+    const ei = MG.entra(ia, t, T.ia, { d: .6, dx: -60, dy: 30, escala0: .85, curva: 'rebote' }); MG.pon(ia, x0 + 90 + ei.x, yb + ei.y, ei.s); ia.style.transformOrigin = '0 100%';
+    const er = MG.entra(res, t, T.res, { d: .7, dy: 60, curva: 'rebote' }); MG.pon(res, x0 + 90, yb + ia.offsetHeight + 30 + er.y);
+    const pr = C.salidaQuint(k(t, T.res + .3, T.res + 2.0)); rb.style.width = (pr * 100) + '%'; rs.textContent = pr < 1 ? `renderizando… ${Math.round(pr * 100)} %` : (P.listo || '✓ listo · 00:42 · 1080p');
+    // notificaciones que se apilan arriba a la derecha
+    nots.forEach((n, i) => { const en = MG.entra(n, t, T.n[i], { d: .6, dx: 0, dy: -120, escala0: .9, curva: 'rebote' });
+      const apila = i < nots.length - 1 ? C.rebote(k(t, T.n[i + 1], T.n[i + 1] + .6)) : 0;
+      const nx = VERT ? 60 : W - 620 - 70, ny = VERT ? 80 + apila * 118 : H - 230 - apila * 118;
+      MG.pon(n, nx, ny + en.y, en.s * (1 - apila * .04)); n.style.zIndex = 10 + i; });
+    MG.camara(t, 1, 1.05);
+  };
+});
+</script>
+</body></html>

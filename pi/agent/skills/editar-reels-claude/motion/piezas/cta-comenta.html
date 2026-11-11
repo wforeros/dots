@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- CTA «Píldora Comenta la palabra» (el de los reels de Diego) · Pack CTA Viegas IA
+     Un círculo de cristal con el logo de Claude (coral) gira al entrar y se estira en píldora; dentro, «COMENTA LA PALABRA»
+     en versalitas y la PALABRA grande en acento, que sube letra a letra. Al final, un brillo recorre la píldora.
+     Parámetros: palabra, texto (línea pequeña), icono (claude|mascota|instagram), idioma, acento, posicion (abajo), duracion, formato, fondo, escala. -->
+<link rel="stylesheet" href="_motor/estilo.css"><link rel="stylesheet" href="_motor/cta.css">
+<script src="_motor/motor.js"></script><script src="_motor/logos.js"></script>
+<style>
+.pil{ height:170px; border-radius:42px; overflow:hidden; }
+.in{ position:absolute; left:0; top:0; height:170px; display:flex; align-items:center; gap:30px; padding:0 54px 0 38px; white-space:nowrap; }
+.ic{ width:96px; height:96px; display:grid; place-items:center; flex:none; }
+.pq{ font:700 24px var(--fuente); letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.62); }
+.pal{ font:800 80px/1.02 var(--fuente); color:var(--acento); letter-spacing:-.01em; text-transform:uppercase; margin-top:4px; }
+.brillo{ position:absolute; top:0; left:0; width:160px; height:100%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.16), transparent); }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 4.5, "palabra": "REELS", "posicion": "abajo", "texto": "", "icono": "claude" }
+</script>
+<script src="_motor/cta.js"></script>
+<script>
+const { P, T, LOGO, k, pon } = CTA;
+escena({ duracion: P.duracion, ancho: CTA.W, alto: CTA.H, fondo: 'transparente' }, (MG) => {
+  const { el, salida } = CTA.inicio(MG), C = MG.curvas;
+  const ico = P.icono === 'mascota' ? LOGO.mascota(92) : P.icono === 'instagram' ? LOGO.instagram(84) : LOGO.claude(88);
+  const pil = el(`<div class="pil vidrio"><div class="in"><div class="ic">${ico}</div><div class="col"><div class="pq"></div><div class="pal"></div></div></div><div class="brillo"></div></div>`);
+  const inn = pil.querySelector('.in'), ic = pil.querySelector('.ic'), pq = pil.querySelector('.pq'), pal = pil.querySelector('.pal'), br = pil.querySelector('.brillo');
+  const pw = CTA.trocea(pq, P.texto || T.comentaLa, 'palabras'), pp = CTA.trocea(pal, P.palabra.toUpperCase(), 'letras');
+  return (t) => {
+    const W = inn.scrollWidth, H = 170;
+    const e = MG.entra(pil, t, 0.05, { d: 0.6, dy: 60, escala0: 0.6, curva: 'rebote' });
+    const ab = C.salidaQuint(k(t, 0.45, 1.15));   // de círculo a píldora
+    pil.style.width = (H + (W - H) * ab) + 'px'; pil.style.borderRadius = (H / 2 - (H / 2 - 42) * ab) + 'px';
+    const ancho = H + (W - H) * ab; MG.pon(pil, -ancho / 2, -H / 2 + e.y, e.s);
+    ic.style.transform = `translateX(${(1 - ab) * -(38 - (H - 96) / 2)}px) rotate(${(1 - C.salidaExpo(k(t, 0.05, 1.0))) * -200}deg) scale(${0.6 + 0.4 * C.rebote(k(t, 0.05, 0.7))})`;
+    CTA.sube(MG, pw, t, 0.75, 0.06, { dy: 18, d: 0.45 });
+    CTA.sube(MG, pp, t, 0.9, 0.045, { dy: 34, d: 0.5, blur: 14 });
+    const pb = k(t, 1.9, 2.6); br.style.opacity = pb > 0 && pb < 1 ? 1 : 0; br.style.transform = `translateX(${-200 + (W + 400) * C.entradaSalidaQuint(pb)}px) skewX(-12deg)`;
+    MG.camara(t, 1, 1.05);
+    salida(t);
+  };
+});
+</script>
+</body></html>

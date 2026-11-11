@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Pieza «lista-escalonada» · Reels con Motion (kit gratis Viegas Estudio)
+     Una lista de 2-4 puntos en tarjetas de cristal que entran una detrás de otra, debajo de la barbilla, encima de tu vídeo.
+     Cada fila: entrada rápida desde la izquierda que frena suave (salidaExpo) con desenfoque de movimiento; el check se dibuja
+     con un rebote corto. Fondo transparente. Cambia los textos y los tiempos en «params» (tiempos en segundos desde que empieza la pieza). -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<link rel="stylesheet" href="../motor/temas/noche-azul.css">
+<script src="../motor/motor.js"></script>
+<style>
+.tit{ position:absolute; font:600 44px var(--fuente); letter-spacing:-.02em; color:#fff; white-space:nowrap; text-shadow:0 4px 24px rgba(0,2,12,.8); }
+.tit em{ font-family:var(--serif); font-style:italic; font-weight:400; color:var(--brillo); }
+.fila{ position:absolute; display:flex; align-items:center; gap:26px; height:118px; padding:0 40px 0 26px; border-radius:30px; white-space:nowrap;
+  background:linear-gradient(180deg, rgba(20,30,58,.78), rgba(9,12,22,.72)); border:1px solid rgba(147,197,253,.22);
+  box-shadow:0 24px 60px rgba(0,2,12,.55), inset 0 1px 0 rgba(255,255,255,.08); backdrop-filter:blur(18px); }
+.n{ width:70px; height:70px; border-radius:22px; display:grid; place-items:center; flex:none; background:linear-gradient(180deg,#4C8FF8,#2F6FE0); box-shadow:0 0 30px rgba(59,130,246,.5); }
+.n svg{ width:40px; height:40px; }
+.fila b{ font:600 50px var(--fuente); letter-spacing:-.02em; color:#F5F7FA; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{
+  "formato": "9x16",
+  "duracion": 4.5,
+  "titulo": "Lo que hace <em>Claude</em>",
+  "puntos": ["Quita los silencios", "Pone los subtítulos", "Añade motion graphics"],
+  "tiempos": [0.35, 0.95, 1.55],
+  "y": 1130
+}
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'transparente' }, (MG) => {
+  const { k, curvas: C } = MG;
+  const tit = MG.el(`<div class="tit">${P.titulo}</div>`);
+  const filas = P.puntos.map((txt) => {
+    const f = MG.el(`<div class="fila"><span class="n"><svg viewBox="0 0 24 24"><path fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><b>${txt}</b></div>`);
+    const p = f.querySelector('path'), L = p.getTotalLength(); p.style.strokeDasharray = L; f.check = (x) => { p.style.strokeDashoffset = L * (1 - x); };
+    return f;
+  });
+  const x0 = 80, PASO = 146;
+  return (t) => {
+    const D = P.duracion, sale = C.entradaCubica(k(t, D - .45, D - .05));   // salida: fundido + desenfoque gaussiano suave hacia abajo
+    const et = MG.entra(tit, t, .1, { d: .5, dx: -60, dy: 0, escala0: 1, curva: 'salidaExpo' });
+    MG.pon(tit, x0 + 10 + et.x, P.y - 90 + sale * 30);
+    filas.forEach((f, i) => {
+      const t0 = P.tiempos[i] ?? (.35 + i * .6);
+      const e = MG.entra(f, t, t0, { d: .55, dx: -340, dy: 0, escala0: .96, curva: 'salidaExpo', base: 4 });
+      MG.pon(f, x0 + e.x, P.y + i * PASO + sale * 30, e.s);
+      f.check(C.rebote(k(t, t0 + .25, t0 + .7)));
+      const n = f.firstChild, s = C.rebote(k(t, t0 + .15, t0 + .65)); n.style.transform = `scale(${.5 + .5 * s})`;
+    });
+    if (sale > 0) [tit, ...filas].forEach((el) => { el.style.opacity = Math.min(+el.style.opacity || 1, 1 - sale); MG.desenfoca(el, 0, sale * 10); });
+    MG.camara(t, 1, 1.03, 540, 1300);
+  };
+});
+</script>
+</body></html>

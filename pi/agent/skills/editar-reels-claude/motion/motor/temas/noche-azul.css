@@ -1,0 +1,40 @@
+/* Tema «noche-azul» (Viegas IA): negro azulado → azul noche, azul eléctrico, haces de luz verticales y rejilla de puntos.
+   Fuentes: títulos Inter Tight 600, palabra clave (<em>) en Instrument Serif Italic, etiquetas y código en Geist Mono
+   (se cargan de Google Fonts al renderizar; sin internet caen en Inter / Segoe UI / Consolas).
+   Úsalo con: node scripts/render.mjs video todas --tema noche-azul */
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500;600&display=block');
+
+:root { --fondo:#090C16; --fondo-rgb:9,12,22; --rejilla:#121A30; --halo:59,130,246; --acento:#3B82F6; --acento2:#93C5FD; --texto:#F5F7FA; --mute:#9AA3B2;
+  --tarjeta:#0F1628; --tarjeta2:#0B1120; --superficie:#1A2540; --tinta:#F5F7FA; --claro:170,200,255; --sombra:0,2,12;
+  --luces:#60A5FA; --brillo:#93C5FD; --logo:#D97757;   /* el logo de Claude y la mascota no cambian de color */
+  --fuente:'Inter Tight', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --serif:'Instrument Serif', 'Times New Roman', serif;
+  --mono:'Geist Mono', 'Cascadia Code', 'Consolas', monospace; }
+
+/* fondo: degradado #08090C → #0B1530, halo azul desde abajo */
+.mg-fondo-marca { background:
+  radial-gradient(60% 48% at 50% 112%, rgba(var(--halo), .32), rgba(var(--halo), .10) 45%, transparent 72%),
+  linear-gradient(180deg, #08090C 0%, #0A0F20 45%, #0B1530 100%); }
+/* encima del fondo (también cuando la escena define su propia trama/halo): haces de luz verticales + puntos sutiles */
+.mg-fondo::after { content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    linear-gradient(90deg, transparent 17%, rgba(96,165,250,.07) 19.5%, transparent 22%,
+                           transparent 46%, rgba(147,197,253,.10) 49.5%, transparent 53%,
+                           transparent 76%, rgba(96,165,250,.06) 79%, transparent 82%),
+    radial-gradient(circle, rgba(170,200,255,.10) 0 1.3px, transparent 2.3px) 0 0/36px 36px;
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.35), #000 55%, rgba(0,0,0,.7));
+          mask-image: linear-gradient(180deg, rgba(0,0,0,.35), #000 55%, rgba(0,0,0,.7)); }
+
+/* tipografía */
+body { font-family: var(--fuente); }
+.mg-titulo { font-weight: 600; letter-spacing: -.03em; }
+.mg-titulo em, h1 em, h2 em, .titulo em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -.01em; color: var(--brillo); }
+.mg-chip { font-family: var(--mono); font-weight: 500; letter-spacing: .08em; color: var(--tinta);
+  background: linear-gradient(180deg, #4C8FF8, #2F6FE0); box-shadow: 0 0 28px rgba(var(--halo), .45), inset 0 1px 0 rgba(255,255,255,.25); }
+.mg-sub { font-weight: 500; }
+.mg-brillo { box-shadow: 0 0 0 2px var(--acento), 0 0 70px rgba(var(--halo), .55); }
+.mg-tarjeta { box-shadow: 0 26px 60px rgba(0,2,12,.6), 0 0 0 1px rgba(147,197,253,.10); }
+.mg-cristal { background: linear-gradient(180deg, rgba(147,197,253,.12), rgba(147,197,253,.04)); border-color: rgba(147,197,253,.20); }
+
+/* el logo de Claude (máscara .logo de los ejemplos) siempre en su coral */
+.logo { background: var(--logo) !important; }

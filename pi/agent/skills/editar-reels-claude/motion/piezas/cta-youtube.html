@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- CTA «Suscríbete · botón con cursor» · Pack CTA Viegas IA
+     La tarjeta del canal entra con rebote, el cursor llega con frenada larga y pulsa «Suscríbete» (pasa a «Suscrito»),
+     aparece la campana y el cursor la activa: la campana se balancea y se asienta.
+     Parámetros: canal, suscriptores, idioma, acento (no cambia el rojo de YouTube), posicion, duracion, formato, fondo, escala. -->
+<link rel="stylesheet" href="_motor/estilo.css"><link rel="stylesheet" href="_motor/cta.css">
+<script src="_motor/motor.js"></script><script src="_motor/logos.js"></script>
+<style>
+.tarj{ display:flex; align-items:center; gap:26px; padding:24px 26px 24px 24px; border-radius:36px; }
+.tarj .avatar{ width:104px; height:104px; font-size:40px; }
+.tarj .nom{ font:700 40px/1.05 var(--fuente); color:#fff; letter-spacing:-.02em; }
+.tarj .sub{ font:500 25px/1.3 var(--fuente); color:rgba(255,255,255,.62); margin-top:6px; display:flex; align-items:center; gap:10px; }
+.btn{ position:relative; height:84px; border-radius:999px; background:#FF0033; color:#fff; font:700 31px var(--fuente); overflow:hidden; flex:none; margin-left:14px; }
+.btn span{ position:absolute; left:0; top:0; height:84px; display:flex; align-items:center; justify-content:center; gap:10px; padding:0 40px; white-space:nowrap; }
+.camp{ width:84px; height:84px; border-radius:50%; background:#272727; color:#fff; display:grid; place-items:center; flex:none; margin-left:-12px; }
+.camp svg{ transform-origin:50% 12%; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 5.5, "canal": "Tu Canal", "suscriptores": 12400, "posicion": "abajo", "escala": { "16x9": 1.35, "9x16": 0.95, "1x1": 0.95 } }
+</script>
+<script src="_motor/cta.js"></script>
+<script>
+const { P, T, LOGO, ICO, esc, k, pon } = CTA;
+escena({ duracion: P.duracion, ancho: CTA.W, alto: CTA.H, fondo: 'transparente' }, (MG) => {
+  const { G, el, salida } = CTA.inicio(MG), C = MG.curvas;
+  const tarj = el(`<div class="tarj vidrio">
+      <div class="avatar">${CTA.iniciales(P.canal)}</div>
+      <div class="col"><div class="nom">${esc(P.canal)}</div><div class="sub">${LOGO.youtube(30)}${CTA.corto(P.suscriptores)} ${T.suscriptores}</div></div>
+      <div class="btn"><span class="a">${T.suscribete}</span><span class="b">${ICO.check(30, '#fff')}${T.suscrito}</span></div>
+      <div class="camp">${ICO.campana(42, '#fff')}</div></div>`);
+  const av = tarj.querySelector('.avatar'), txt = tarj.querySelector('.col'), btn = tarj.querySelector('.btn'), la = btn.querySelector('.a'), lb = btn.querySelector('.b');
+  const camp = tarj.querySelector('.camp'), icoC = camp.querySelector('svg');
+  const cur = CTA.cursor(MG, G);
+  const tc1 = 1.75, tc2 = 2.95;
+  return (t) => {
+    // tarjeta: escala desde 0.86 con rebote natural + desenfoque de movimiento
+    const e = MG.entra(tarj, t, 0.1, { d: 0.75, dy: 70, escala0: 0.86, curva: 'rebote' });
+    [av, txt, btn].forEach((x, i) => { const s = MG.entra(x, t, 0.22 + i * 0.08, { d: 0.6, dx: 40, dy: 0, escala0: 1, curva: 'salidaExpo' }); x.style.transform = `translateX(${s.x}px)`; });
+    // botón: ancho y color se transforman al pulsar
+    const wa = la.offsetWidth, wb = lb.offsetWidth, m = C.salidaQuint(k(t, tc1, tc1 + 0.45));
+    btn.style.width = (wa + (wb - wa) * m) + 'px';
+    btn.style.background = `rgb(${Math.round(255 + (39 - 255) * m)},${Math.round(0 + 39 * m)},${Math.round(51 + (39 - 51) * m)})`;
+    la.style.opacity = 1 - k(t, tc1, tc1 + 0.18); la.style.transform = `translateY(${-30 * C.salidaCubica(k(t, tc1, tc1 + 0.3))}px)`;
+    lb.style.opacity = k(t, tc1 + 0.12, tc1 + 0.32); lb.style.transform = `translateY(${30 * (1 - C.salidaQuint(k(t, tc1 + 0.1, tc1 + 0.5)))}px)`;
+    btn.style.transform += ` scale(${CTA.pulsa(MG, t, tc1)})`;
+    // campana: aparece a la derecha tras suscribirse y oscila al activarla
+    const ec = C.rebote(k(t, tc1 + 0.3, tc1 + 1.1));
+    camp.style.width = camp.style.height = (84 * Math.min(1, ec * 1.2)) + 'px'; camp.style.marginLeft = (-12 + 26 * Math.min(1, ec)) + 'px';
+    camp.style.opacity = Math.min(1, ec * 1.5); camp.style.transform = `scale(${Math.max(0, ec) * CTA.pulsa(MG, t, tc2)})`;
+    const u = t - tc2, giro = u > 0 ? 22 * Math.exp(-3.2 * u) * Math.sin(u * 2 * Math.PI * 3.1) : 0;
+    icoC.style.transform = `rotate(${giro}deg)`;
+    camp.style.background = t > tc2 + 0.05 ? '#3a3a3a' : '#272727';
+    pon(tarj, 0, e.y, e.s);
+    // cursor: entra por abajo a la derecha, pulsa el botón y luego la campana
+    const w2 = tarj.offsetWidth / 2, bx = -w2 + btn.offsetLeft + btn.offsetWidth * 0.55, cx = -w2 + camp.offsetLeft + camp.offsetWidth * 0.5;
+    CTA.mueveCursor(MG, cur, t, [[0.8, 1.62, 520, 330, bx, 14], [2.3, 2.85, bx, 14, cx, 10], [3.5, 4.3, cx, 10, cx + 420, 300]], [tc1, tc2]);
+    MG.camara(t, 1, 1.05);
+    salida(t);
+  };
+});
+</script>
+</body></html>

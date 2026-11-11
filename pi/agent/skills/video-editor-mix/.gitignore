@@ -1,0 +1,9 @@
+config.json
+.platform.json
+.venv/
+__pycache__/
+assets/template/assets/sfx/*.mp3
+assets/template/assets/sfx/*.part
+*.log
+.DS_Store
+node_modules/

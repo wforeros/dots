@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Reel Claude Duet · Reel «Claude Duet Toma 10 Three.js 3D» (2026-10-23) · graficos/escenas/subtitulos.html
+     Un trozo de 1-4 palabras cada vez, SF Compact Heavy blanco; la palabra clave sola, en SF Compact Black MAYÚSCULAS coral #D97757 con brillo suave. Entrada de 0,3 s subiendo y desenfocándose a nítido, sin rebote.
+     Uso: plantilla.html?datos=<carpeta con words.json, keywords.json, recursos.json>&formato=9x16|16x9 · window.seek(t) pinta el instante t.
+     Parámetros de comportamiento en estilo.json; aspecto (fuentes, colores, sombras) aquí abajo y en "vars" de estilo.json. -->
+<link rel="stylesheet" href="../../motor/fuentes.css">
+<style>
+  .w { font-family: "SFCD"; font-weight: 800; font-size: var(--tam); line-height: 1.08; color: #F4F2EE;
+        text-shadow: 0 4px 18px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.9); }
+  .w.k { font-weight: 900; font-size: var(--tam-clave); letter-spacing: -.02em; line-height: 1; color: #D97757;
+        text-shadow: 0 6px 26px rgba(0,0,0,.8), 0 0 40px rgba(217,119,87,.35), 0 0 2px rgba(0,0,0,.9); }
+  .ico { height: .82em; width: .82em; margin-right: .22em; filter: drop-shadow(0 6px 18px rgba(0,0,0,.7)); }
+  .w:not(.k) .ico { height: 1em; width: 1em; }
+</style>
+</head><body><div id="lienzo"></div>
+<script src="../../motor/subtitulos.js"></script>
+</body></html>

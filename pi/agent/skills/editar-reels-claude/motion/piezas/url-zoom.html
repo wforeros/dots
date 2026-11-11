@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- Pieza «url-zoom» · Enseña el truco de una URL falsa: las letras que imitan a otra (en «arnazon», la R y la N fingen ser una M).
+     Va debajo de la barbilla, encima del pecho. Parámetros: palabra, imitan (las letras que se resaltan), equivalen («m»),
+     nota (frase corta), y, duracion, formato. -->
+<link rel="stylesheet" href="../motor/estilo.css">
+<script src="../motor/motor.js"></script>
+<style>
+.card{ position:absolute; left:70px; width:940px; border-radius:36px; padding:40px 46px 38px;
+  background:linear-gradient(180deg, rgba(28,27,33,.9), rgba(10,9,13,.88)); border:2px solid rgba(255,255,255,.14);
+  box-shadow:0 30px 70px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.09); }
+.lbl{ font:800 22px var(--fuente); letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.45); }
+.word{ font:600 88px var(--mono); letter-spacing:-.02em; color:#F6F4F1; margin-top:10px; white-space:nowrap; }
+.word b{ color:var(--acento); font-weight:600; }
+.eq{ display:flex; align-items:baseline; gap:20px; margin-top:26px; white-space:nowrap; }
+.eq i{ font:600 62px var(--mono); font-style:normal; color:rgba(255,255,255,.5); }
+.eq s{ font:700 74px var(--mono); text-decoration:none; color:var(--acento); }
+.nota{ margin-top:22px; font:600 34px/1.25 var(--fuente); color:rgba(255,255,255,.82); }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 5.2, "palabra": "arnazon", "imitan": "rn", "equivalen": "m",
+  "nota": "La R y la N simulan una M", "y": 1046 }
+</script>
+<script src="../motor/estilos.js"></script>
+<script>
+const { P, W, H } = EST;
+escena({ duracion: P.duracion, ancho: W, alto: H, fondo: 'transparente' }, (MG) => {
+  const { k, curvas: C } = MG, D = P.duracion;
+  const i = Math.max(0, P.palabra.indexOf(P.imitan)), a = P.palabra.slice(0, i), b = P.imitan, c = P.palabra.slice(i + P.imitan.length);
+  const card = MG.el(`<div class="card"><div class="lbl">Lo que lees</div>
+    <div class="word">${a}<b>${b}</b>${c}</div>
+    <div class="eq"><i>${b.split('').join(' + ')}</i><i>=</i><s>${P.equivalen}</s></div>
+    <div class="nota">${P.nota}</div></div>`);
+  const eq = card.querySelector('.eq'), nota = card.querySelector('.nota');
+  return (t) => {
+    const venta = C.entradaCubica(k(t, D - 0.5, D - 0.05));
+    const e = MG.entra(card, t, 0.08, { d: 0.6, dy: 90, escala0: 0.96, curva: 'salidaExpo', base: 5 });
+    MG.pon(card, e.x, P.y + e.y + venta * 24, e.s);
+    const ee = MG.entra(eq, t, 0.75, { d: 0.45, dy: 26, escala0: 1, curva: 'salidaQuint', base: 4 });
+    eq.style.transform = `translateY(${ee.y}px)`;
+    const en = MG.entra(nota, t, 1.15, { d: 0.45, dy: 22, escala0: 1, curva: 'salidaQuint', base: 4 });
+    nota.style.transform = `translateY(${en.y}px)`;
+    if (venta > 0) { card.style.opacity = Math.min(+card.style.opacity || 1, 1 - venta); MG.desenfoca(card, 0, venta * 9); }
+    MG.camara(t, 1, 1.02, W / 2, P.y + 120);
+  };
+});
+</script>
+</body></html>

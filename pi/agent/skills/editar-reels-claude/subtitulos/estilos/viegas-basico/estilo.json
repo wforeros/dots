@@ -1,0 +1,61 @@
+{
+ "id": "viegas-basico",
+ "nombre": "Subtítulos Viegas (gratis)",
+ "origen": "Reel «Claude Duet Toma 10 Three.js 3D» (2026-10-23) · graficos/escenas/subtitulos.html",
+ "descripcion": "Un trozo de 1-4 palabras cada vez, SF Compact Heavy blanco; la palabra clave sola, en SF Compact Black MAYÚSCULAS coral #D97757 con brillo suave. Entrada de 0,3 s subiendo y desenfocándose a nítido, sin rebote.",
+ "pedir": "Pon los subtítulos con el estilo de la skill: un trozo cada vez y la palabra clave sola en coral, en mayúsculas.",
+ "mayusculas": "clave",
+ "revelar": "grupo",
+ "agrupar": {
+  "maxPalabras": 4,
+  "maxCaracteres": 20,
+  "claveSola": true
+ },
+ "entrada": {
+  "dur": 0.3,
+  "dy": 18,
+  "blur": 4,
+  "curva": "salidaCubica"
+ },
+ "entradaClave": {
+  "dur": 0.3,
+  "dy": 26,
+  "blur": 5,
+  "escala0": 0.9,
+  "curva": "salidaCubica"
+ },
+ "recurso": {
+  "modo": "icono",
+  "antes": 0.15,
+  "dur": 0.42,
+  "curva": "atras",
+  "escala0": 0.4,
+  "blur": 6,
+  "giro": -12
+ },
+ "vars": {
+  "tam": "70px",
+  "tam-clave": "124px",
+  "hueco": ".26em"
+ },
+ "formatos": {
+  "9x16": {
+   "ancho": 1080,
+   "alto": 1920,
+   "centroY": 1450,
+   "izq": 60,
+   "der": 60
+  },
+  "16x9": {
+   "ancho": 1920,
+   "alto": 1080,
+   "centroY": 905,
+   "izq": 260,
+   "der": 260,
+   "vars": {
+    "tam": "60px",
+    "tam-clave": "104px"
+   }
+  }
+ }
+}

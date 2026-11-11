@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<!-- CTA «Perfil de Instagram» · Pack CTA Viegas IA
+     La cabecera de un perfil de Instagram entra con rebote: anillo de historia que gira, @usuario, cifras que cuentan
+     y el botón azul «Seguir»; el cursor lo pulsa y pasa a «Siguiendo». Parámetros: usuario, canal (nombre), seguidores,
+     idioma, acento (anillo del avatar), posicion, duracion, formato, fondo, escala. -->
+<link rel="stylesheet" href="_motor/estilo.css"><link rel="stylesheet" href="_motor/cta.css">
+<script src="_motor/motor.js"></script><script src="_motor/logos.js"></script>
+<style>
+.card{ width:820px; padding:40px 44px 44px; border-radius:48px; }
+.top{ display:flex; align-items:center; gap:14px; font:700 34px var(--fuente); color:#fff; }
+.cab{ display:flex; align-items:center; gap:44px; margin-top:30px; }
+.anillo{ width:190px; height:190px; border-radius:50%; position:relative; flex:none; }
+.anillo .gir{ position:absolute; inset:0; border-radius:50%; background:conic-gradient(#FEDA75,#FA7E1E,#D62976,#962FBF,#4F5BD5,#FEDA75); }
+.anillo .hueco{ position:absolute; inset:7px; border-radius:50%; background:#141318; }
+.anillo .avatar{ position:absolute; inset:15px; font-size:62px; }
+.cifras{ display:flex; gap:40px; }
+.cifra{ text-align:center; }
+.cifra b{ display:block; font:700 42px/1.1 var(--fuente); color:#fff; font-variant-numeric:tabular-nums; }
+.cifra span{ font:500 25px var(--fuente); color:rgba(255,255,255,.65); }
+.nom{ font:700 32px var(--fuente); color:#fff; margin-top:26px; }
+.bio{ font:400 28px/1.35 var(--fuente); color:rgba(255,255,255,.75); margin-top:6px; }
+.btn{ position:relative; margin-top:30px; height:84px; border-radius:18px; background:#0095F6; color:#fff; font:700 32px var(--fuente); overflow:hidden; }
+.btn span{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px; }
+</style>
+</head><body>
+<script id="params" type="application/json">
+{ "formato": "9x16", "duracion": 5.5, "usuario": "@tuusuario", "canal": "Tu Nombre", "seguidores": 12400, "posicion": "abajo", "texto": "" }
+</script>
+<script src="_motor/cta.js"></script>
+<script>
+const { P, T, LOGO, ICO, esc, k, pon } = CTA;
+escena({ duracion: P.duracion, ancho: CTA.W, alto: CTA.H, fondo: 'transparente' }, (MG) => {
+  const { G, el, salida } = CTA.inicio(MG), C = MG.curvas;
+  const card = el(`<div class="card vidrio">
+     <div class="top">${LOGO.instagram(46)}<span>${esc(P.user)}</span></div>
+     <div class="cab"><div class="anillo"><div class="gir"></div><div class="hueco"></div><div class="avatar">${CTA.iniciales(P.canal)}</div></div>
+       <div class="cifras"><div class="cifra"><b class="n1">0</b><span>${T.publicaciones}</span></div><div class="cifra"><b class="n2">0</b><span>${T.seguidores}</span></div><div class="cifra"><b class="n3">0</b><span>${T.siguiendoN}</span></div></div></div>
+     <div class="nom">${esc(P.canal)}</div><div class="bio">${esc(P.texto || T.masCont)}</div>
+     <div class="btn"><span class="a">${T.seguir}</span><span class="b">${T.siguiendo} ${ICO.check(28, '#fff')}</span></div></div>`);
+  const [top, cab, nom, bio, btn] = ['.top', '.cab', '.nom', '.bio', '.btn'].map((s) => card.querySelector(s));
+  const gir = card.querySelector('.gir'), la = btn.querySelector('.a'), lb = btn.querySelector('.b');
+  const n = [card.querySelector('.n1'), card.querySelector('.n2'), card.querySelector('.n3')];
+  const seg = Math.max(0, +String(P.seguidores).replace(/\D/g, '') || 48200), fmt = (v) => (v >= 10000 ? (v / 1000).toLocaleString(P.idioma === 'en' ? 'en-US' : 'es-ES', { maximumFractionDigits: 1 }) + (P.idioma === 'en' ? 'K' : ' mil') : CTA.miles(v));
+  const cur = CTA.cursor(MG, G), tc = 2.5;
+  return (t) => {
+    const e = MG.entra(card, t, 0.1, { d: 0.75, dy: 120, escala0: 0.88, curva: 'rebote' }); pon(card, 0, e.y, e.s);
+    [top, cab, nom, bio, btn].forEach((x, i) => { const s = MG.entra(x, t, 0.3 + i * 0.07, { d: 0.55, dy: 30, escala0: 1, curva: 'salidaExpo' }); x.style.transform = `translateY(${s.y}px)`; });
+    gir.style.transform = `rotate(${t * 70}deg)`;
+    const pc = C.salidaQuint(k(t, 0.6, 2.0));
+    n[0].textContent = Math.round(312 * pc); n[1].innerHTML = CTA.corto(Math.round(seg * pc) + (t > tc + 0.2 ? 1 : 0)); n[2].textContent = Math.round(180 * pc);
+    const m = C.salidaQuint(k(t, tc, tc + 0.4));
+    btn.style.background = `rgb(${Math.round(0 + 54 * m)},${Math.round(149 - 95 * m)},${Math.round(246 - 192 * m)})`;
+    la.style.opacity = 1 - k(t, tc, tc + 0.15); lb.style.opacity = k(t, tc + 0.1, tc + 0.3);
+    lb.style.transform = `translateY(${24 * (1 - C.salidaQuint(k(t, tc + 0.1, tc + 0.5)))}px)`;
+    btn.style.transform += ` scale(${CTA.pulsa(MG, t, tc)})`;
+    const by = card.offsetHeight / 2 - 44 - 42;   // centro del botón respecto al centro de la tarjeta
+    CTA.mueveCursor(MG, cur, t, [[1.4, 2.35, 380, 620, 60, by + 6], [3.3, 4.2, 60, by + 6, 380, by + 400]], [tc]);
+    MG.camara(t, 1, 1.05);
+    salida(t);
+  };
+});
+</script>
+</body></html>

@@ -1,0 +1,21 @@
+/* cta.css · Pack de CTAs animados · Viegas IA — piezas comunes (cristal, botones, píldoras, cursor) */
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@1&display=block');
+:root{ --fuente:'SF Pro Display','SF Compact Display','Inter Tight','Inter','Segoe UI',system-ui,sans-serif; --serif:'Instrument Serif',Georgia,serif;
+  --acento:#D97757; --acento-rgb:217,119,87; --vidrio:rgba(22,21,26,.78); --borde:rgba(255,255,255,.14); }
+html,body{ font-family:var(--fuente); }
+.cta-g{ position:absolute; left:0; top:0; transform-origin:0 0; }
+.cta-g > *{ position:absolute; left:0; top:0; width:max-content; will-change:transform,opacity,filter; }
+.vidrio{ background:linear-gradient(180deg,rgba(40,38,46,.86),rgba(18,17,22,.86)); border:1.5px solid var(--borde); box-shadow:0 30px 70px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.12); backdrop-filter:blur(18px); }
+.claro{ background:linear-gradient(180deg,#FFFFFF,#F2F2F4); color:#0F0F10; box-shadow:0 30px 70px rgba(0,0,0,.35), inset 0 -2px 0 rgba(0,0,0,.05); }
+.fila{ display:flex; align-items:center; white-space:nowrap; }
+.col{ display:flex; flex-direction:column; }
+.pild{ border-radius:999px; }
+.avatar{ border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; letter-spacing:-.02em;
+  background:radial-gradient(circle at 30% 25%, rgba(255,255,255,.35), transparent 45%), linear-gradient(150deg, var(--acento), #1c1a20); flex:none; }
+.cta-cursor{ z-index:40; filter:drop-shadow(0 8px 14px rgba(0,0,0,.45)); margin:-4px 0 0 -6px; }
+.cta-onda{ z-index:39; width:90px; height:90px; border-radius:50%; border:3px solid rgba(255,255,255,.9); opacity:0; }
+.sombra-t{ text-shadow:0 6px 30px rgba(0,0,0,.45); }
+.mono{ font-family:'SF Mono','Consolas','Geist Mono',monospace; }
+.fila,.col{ white-space:nowrap; }
+.tz{ display:inline-block; white-space:pre; will-change:transform,filter,opacity; }
+.grad-ig{ background:linear-gradient(90deg,#FEDA75,#FA7E1E 25%,#D62976 55%,#962FBF 80%,#4F5BD5); -webkit-background-clip:text; background-clip:text; color:transparent; }
