@@ -27,7 +27,7 @@ list() {
   for f in settings.json keys.json; do [ -f "$f" ] && echo "$f"; done
   find layouts mods themes -maxdepth 3 -type f \
     ! -name 'jsconfig.json' ! -name '*.d.ts' ! -name '*.error' \
-    ! -name '*.svg' ! -name '*.md' 2>/dev/null
+    ! -name '*.md' 2>/dev/null
 }
 
 changed=0
