@@ -38,6 +38,16 @@ __pycache__/
 *.pyc
 pi/agent/missions/
 pi/agent/pi-caffeinate.json
+pi/agent/skills/video-edit/.platform.json
+pi/agent/skills/video-edit/config.json
+pi/agent/skills/video-editor-mix/.platform.json
+.venv
 
 # skills de vídeo: SFX descargados por setup.py (licencia Pixabay, no se versionan)
 pi/agent/skills/*/assets/template/assets/sfx/*.mp3
+
+# skills de vídeo: symlinks a worktree reels (el contenido vive en reels)
+pi/agent/skills/editar-reels-claude
+pi/agent/skills/prepara-tu-ordenador-reels-editor-deps
+pi/agent/skills/video-edit
+pi/agent/skills/video-editor-mix
