@@ -6,6 +6,7 @@ Este repositorio contiene mis archivos de configuración (dot files) para varias
 
 - [tmux](#tmux)
 - [neovim (nvim)](#neovim-nvim)
+- [Herdr (app de Windows)](#herdr)
 - [Scripts](#scripts)
 - [Zsh](#zsh)
 - [i3wm](https://i3wm.org/) (Para el gestor de ventanas) / [GlazeWM](https://github.com/glzr-io/glazewm) (Gestor de ventanas para Windows)
@@ -30,6 +31,10 @@ La configuración de `neovim` incluye:
 - Temas y colores personalizados
 
 Para más detalles, revisa el directorio [`nvim`](./nvim).
+
+## Herdr
+
+La configuración de la app de Herdr (Windows) y sus mods vive en [`herdr/app`](./herdr/app/README.md). Ahí está explicado cómo se sincroniza con Windows, qué hace cada mod y cómo instalar los que viven en repos propios (como `gitdiff`).
 
 ## Scripts
 
