@@ -32,3 +32,25 @@ literal al terminal. Las rutas de lazygit/hunk van absolutas porque el core en
 
 Los cambios se aplican en vivo; `herdr-app status` y `herdr-app check <mod>`
 dicen si algo quedó mal (`errors: []` / `check passed`).
+
+## Mods con repo propio
+
+No todos los mods viven aquí. Un mod que se publica por su cuenta tiene su
+propio repo y su propio `install.sh`, y `herdr-app-sync.sh` no lo toca.
+
+### `gitdiff` (panel Changes)
+
+- Repo: `~/documents/herdr/mods/herdr-gitdiff` (remoto `git@github.com:wforeros/herdr-gitdiff.git`).
+- Qué hace: lista de archivos cambiados, cada uno se despliega con sus hunks, números de línea, `+`/`−` y resaltado de sintaxis. Solo lectura.
+- Instalación (desde WSL, apuntando a la app de Windows):
+
+  ```sh
+  cd ~/documents/herdr/mods/herdr-gitdiff
+  HERDR_APP_HOME='C:\Users\PC\.config\herdr-app' HERDR_APP_BIN=/mnt/c/Users/PC/AppData/Local/Programs/herdr-app/herdr-app.exe ./install.sh
+  ```
+
+- El layout `layouts/main-tabs.json` ya lo usa en el bloque `changes` (`"mod": "gitdiff"`).
+  Si el mod no está instalado, el panel Changes sale vacío. Instálalo antes de
+  sincronizar el layout en otra máquina.
+- Para quitarlo: `./install.sh --uninstall` (con las mismas variables) y volver a
+  `"mod": "changes"` en el layout si quieres el panel de serie.
