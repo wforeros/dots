@@ -155,7 +155,7 @@
                 {
                   "id": "panel-body",
                   "type": "stack",
-                  "active": "files",
+                  "active": "changes",
                   "children": [
                     {
                       "id": "files",
@@ -168,7 +168,7 @@
                       "id": "changes",
                       "type": "block",
                       "content": {
-                        "mod": "changes"
+                        "mod": "gitdiff"
                       }
                     }
                   ]
