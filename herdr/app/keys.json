@@ -1,5 +1,9 @@
 {
   "global": {
+    "alt-shift-c": { "command": "layout.toggle", "args": { "id": "panel" } },
+    "alt-r": "gitdiff.refresh",
+    "alt-e": "gitdiff.expand-all",
+    "alt-shift-e": "gitdiff.collapse-all",
     "alt-,": "tab.rename",
     "alt-1": "space.select:1",
     "alt-2": "space.select:2",
