@@ -10,13 +10,14 @@
     "npm:pi-calm",
     "npm:@narumitw/pi-usage",
     "npm:@narumitw/pi-btw",
-    "npm:@narumitw/pi-caffeinate"
+    "npm:@narumitw/pi-caffeinate",
+    "npm:pi-claude-bridge"
   ],
   "extensionChangelogVersions": {
     "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.47.0",
-    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.87.0",
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.0",
     "{\"source\":\"npm:@narumitw/pi-usage\",\"scope\":\"user\"}": "0.69.2",
-    "{\"source\":\"npm:@narumitw/pi-btw\",\"scope\":\"user\"}": "0.63.5",
+    "{\"source\":\"npm:@narumitw/pi-btw\",\"scope\":\"user\"}": "0.63.7",
     "{\"source\":\"npm:@narumitw/pi-caffeinate\",\"scope\":\"user\"}": "0.49.14"
   }
 }
