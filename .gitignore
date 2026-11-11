@@ -51,3 +51,9 @@ pi/agent/skills/editar-reels-claude
 pi/agent/skills/prepara-tu-ordenador-reels-editor-deps
 pi/agent/skills/video-edit
 pi/agent/skills/video-editor-mix
+
+# herdr-t3 layout (github.com/JinJieBeWater/herdr-t3): no se versiona aquí
+herdr/app/layouts/herdr-t3.json
+herdr/app/layouts/herdr-t3.svg
+herdr/app/mods/t3-*/
+herdr/app/mods/git*/
