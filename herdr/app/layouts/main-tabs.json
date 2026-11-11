@@ -104,7 +104,7 @@
           },
           "window_drag": true,
           "content": {
-            "mod": "tabs"
+            "mod": "tabs-graph"
           }
         },
         {
@@ -168,7 +168,14 @@
                       "id": "changes",
                       "type": "block",
                       "content": {
-                        "mod": "gitdiff"
+                        "mod": "herdr-gitdiff"
+                      }
+                    },
+                    {
+                      "id": "graph",
+                      "type": "block",
+                      "content": {
+                        "mod": "git-graph"
                       }
                     }
                   ]

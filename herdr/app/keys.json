@@ -1,9 +1,9 @@
 {
   "global": {
     "alt-shift-c": { "command": "layout.toggle", "args": { "id": "panel" } },
-    "alt-r": "gitdiff.refresh",
-    "alt-e": "gitdiff.expand-all",
-    "alt-shift-e": "gitdiff.collapse-all",
+    "alt-r": "herdr-gitdiff.refresh",
+    "alt-e": "herdr-gitdiff.expand-all",
+    "alt-shift-e": "herdr-gitdiff.collapse-all",
     "alt-,": "tab.rename",
     "alt-1": "space.select:1",
     "alt-2": "space.select:2",
@@ -19,6 +19,7 @@
     "alt-b": "layout.toggle:sidebar",
     "alt-c": "tab.new",
     "alt-down": "agent.next",
+    "alt-g": "tabs-graph.graph",
     "alt-h": "pane.go:left",
     "alt-j": "pane.go:down",
     "alt-k": "pane.go:up",
