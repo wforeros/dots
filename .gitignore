@@ -38,3 +38,6 @@ __pycache__/
 *.pyc
 pi/agent/missions/
 pi/agent/pi-caffeinate.json
+
+# skills de vídeo: SFX descargados por setup.py (licencia Pixabay, no se versionan)
+pi/agent/skills/*/assets/template/assets/sfx/*.mp3
