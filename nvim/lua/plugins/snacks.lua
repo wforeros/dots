@@ -104,8 +104,8 @@ return {
             height = 0.999,
             border = "rounded",
             { win = "input", height = 1, border = "bottom" },
-            { win = "list", height = 0.20 }, -- 20% de altura para la lista de archivos (arriba)
-            { win = "preview", height = 0.80, border = "top" }, -- 80% de altura para la preview (abajo)
+            { win = "list", height = 0.25 }, -- 25% de altura para la lista de archivos (arriba)
+            { win = "preview", height = 0.75, border = "top" }, -- 75% de altura para la preview (abajo)
           },
         },
 

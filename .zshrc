@@ -91,8 +91,23 @@ source $ZSH/oh-my-zsh.sh
 
 export CONFIG_DIR="$HOME/.config"
 
-export PATH="$HOME/.config/bin:$PATH"
+export PATH="$HOME/.config/bin:$HOME/.local/bin:$PATH"
+# wl-copy (clipboard de nvim) necesita WAYLAND_DISPLAY; fallback si el pane no lo trae
+[[ $OSTYPE == linux* ]] && export WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
 export PATH="$PATH:$HOME/squashfs-root/usr/bin"
+
+# WSL por SSH (panes de Herdr): aquí no llega el PATH de Windows ni
+# $WSL_DISTRO_NAME, así que no había explorer.exe y `open` es xdg-open (sin GUI).
+if [[ -x /mnt/c/Windows/explorer.exe ]]; then
+  path+=(/mnt/c/Windows /mnt/c/Windows/System32 /mnt/c/Windows/System32/WindowsPowerShell/v1.0)
+  open() {
+    case ${1:-.} in
+      http*|mailto:*) cmd.exe /c start "" "$1" ;;
+      *) [[ -d ${1:-.} ]] && explorer.exe "$(wslpath -w "${1:-.}")" \
+                          || cmd.exe /c start "" "$(wslpath -w "${1:-.}")" ;;
+    esac
+  }
+fi
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
@@ -227,12 +242,6 @@ pip3() {
   pip3 "$@"
 }
 
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/wforerosierra/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/wforerosierra/google-cloud-sdk/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/Users/wforerosierra/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/wforerosierra/google-cloud-sdk/completion.zsh.inc'; fi
-
 export PATH="/usr/local/bin:$PATH"
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
@@ -243,30 +252,17 @@ export SDKMAN_DIR="$HOME/.sdkman"
 # export DOCKER_DB=db
 # export MY_USER_ID=testing@snapchat.com
 export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-lazy_load_nvm() {
-  unset -f nvm node npm npx lazy_load_nvm
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-}
-
-nvm() {
-  lazy_load_nvm
-  nvm "$@"
-}
-
-node() {
-  lazy_load_nvm
-  node "$@"
-}
-
-npm() {
-  lazy_load_nvm
-  npm "$@"
-}
-
-npx() {
-  lazy_load_nvm
-  npx "$@"
-}
+# Loaded eagerly on purpose: lazy functions leave the terminal PATH without the nvm node,
+# so prompts, nvim/LSP and scripts silently use /usr/bin/node. `--no-use` skips the slow
+# `nvm use default`; only the default version's bin goes on PATH.
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+  \. "$NVM_DIR/nvm.sh" --no-use
+  nvm_default="$(nvm version default)"
+  # a default alias can point at a version that is no longer installed: fall back to the newest
+  [ -d "$NVM_DIR/versions/node/$nvm_default/bin" ] || nvm_default="$(nvm version node)"
+  [ -d "$NVM_DIR/versions/node/$nvm_default/bin" ] && export PATH="$NVM_DIR/versions/node/$nvm_default/bin:$PATH"
+  unset nvm_default
+fi
 
 # export PATH="$HOME/.local/bin:$PATH:/Applications/IntelliJ IDEA.app/Contents/MacOS"
 export EDITOR="nvim"
@@ -285,3 +281,18 @@ export PATH=/home/wforeros/.opencode/bin:$PATH
 # Created by `pipx` on 2026-05-31 18:44:22
 export PATH="$PATH:/home/wforeros/.local/bin"
 export PATH="$HOME/.cargo/bin:$PATH"
+
+alias idea='"/mnt/c/Users/PC/AppData/Local/Programs/IntelliJ IDEA 2026.2.0.1/bin/idea64.exe"'
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/wforeros/google-cloud-sdk/path.zsh.inc' ]; then . '/home/wforeros/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/wforeros/google-cloud-sdk/completion.zsh.inc' ]; then . '/home/wforeros/google-cloud-sdk/completion.zsh.inc'; fi
+
+# bun completions
+[ -s "/home/wforeros/.bun/_bun" ] && source "/home/wforeros/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"

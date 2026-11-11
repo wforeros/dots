@@ -34,14 +34,14 @@ const BINDINGS = [
   ["$", "Rename space", "space.rename", {}],
   ["X", "Close tab", "tab.close"],
   ["D", "Close space", "space.close"],
-  // The TUI's worktree keys. prefix+shift+g is lazygit here, as in the TUI's own config.
+  // The TUI's worktree keys.
   ["o", "Open worktree", () => worktree("open")],
   ["g", "New worktree", () => worktree("new")],
   ["J", "Next space", "space.next", {}, true],
   ["K", "Previous space", "space.prev", {}, true],
-  // The TUI's [[keys.command]] panes (lazygit, hunk diff). Absolute paths: the
+  // The TUI's [[keys.command]] panes (hunk diff). The path is absolute: the
   // core on wsl starts with a minimal PATH that has no linuxbrew.
-  ["G", "lazygit", "pane.split", { direction: "right", argv: ["/home/linuxbrew/.linuxbrew/bin/lazygit"] }],
+  ["G", "Toggle changes panel", "layout.toggle", { id: "panel" }],
   ["H", "hunk diff", "pane.split", { direction: "right", argv: ["/home/linuxbrew/.linuxbrew/bin/hunk", "diff"] }],
   ["z", "Zoom pane", "pane.zoom"],
   ["d", "Minimize window", "window.minimize"],

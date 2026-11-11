@@ -104,7 +104,7 @@
           },
           "window_drag": true,
           "content": {
-            "mod": "tabs"
+            "mod": "tabs-graph"
           }
         },
         {
@@ -150,12 +150,11 @@
                 "px": 368
               },
               "min": 280,
-              "max": 900,
               "children": [
                 {
                   "id": "panel-body",
                   "type": "stack",
-                  "active": "files",
+                  "active": "changes",
                   "children": [
                     {
                       "id": "files",
@@ -168,7 +167,14 @@
                       "id": "changes",
                       "type": "block",
                       "content": {
-                        "mod": "changes"
+                        "mod": "herdr-gitdiff"
+                      }
+                    },
+                    {
+                      "id": "graph",
+                      "type": "block",
+                      "content": {
+                        "mod": "git-graph"
                       }
                     }
                   ]

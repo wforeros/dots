@@ -6,11 +6,21 @@ Este repositorio contiene mis archivos de configuración (dot files) para varias
 
 - [tmux](#tmux)
 - [neovim (nvim)](#neovim-nvim)
+- [Instalación de Herdr con un agente](#instalación-de-herdr-con-un-agente)
+- [Herdr (app de Windows)](#herdr)
 - [Scripts](#scripts)
 - [Zsh](#zsh)
 - [i3wm](https://i3wm.org/) (Para el gestor de ventanas) / [GlazeWM](https://github.com/glzr-io/glazewm) (Gestor de ventanas para Windows)
 - [compton](https://github.com/chjj/compton) (Para trasparencia)
 - [feh](https://feh.finalrewind.org/) (Para poner fondos)
+
+## Instalación de Herdr con un agente
+
+Las instrucciones de instalación de la app de Herdr están en [`herdr/app/INSTALL.md`](./herdr/app/INSTALL.md). Es la forma más fácil: dile a tu agente que lo lea y ejecute sus pasos, por ejemplo:
+
+> Lee `herdr/app/INSTALL.md` y ejecuta las instrucciones para instalar mi configuración de Herdr.
+
+El documento detecta si estás en WSL o en Unix y sigue el camino correcto.
 
 ## tmux
 
@@ -30,6 +40,10 @@ La configuración de `neovim` incluye:
 - Temas y colores personalizados
 
 Para más detalles, revisa el directorio [`nvim`](./nvim).
+
+## Herdr
+
+La configuración de la app de Herdr (Windows) y sus mods vive en [`herdr/app`](./herdr/app/README.md). Ahí está explicado cómo se sincroniza con Windows, qué hace cada mod y cómo instalar los que viven en repos propios (como `gitdiff`).
 
 ## Scripts
 

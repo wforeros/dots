@@ -29,3 +29,34 @@ pi/agent/calm
 pi/agent/extensions/herdr-agent-state.ts
 pi/agent/pi-subagents/
 pi/agent/pi-web-access/
+
+# dependencias de las skills (se reinstalan con `npm install` en cada skill)
+pi/agent/skills/*/node_modules/
+
+# pi: runtime y bytecode (no versionar)
+__pycache__/
+*.pyc
+pi/agent/missions/
+pi/agent/pi-caffeinate.json
+pi/agent/skills/video-edit/.platform.json
+pi/agent/skills/video-edit/config.json
+pi/agent/skills/video-editor-mix/.platform.json
+.venv
+
+# skills de vídeo: SFX descargados por setup.py (licencia Pixabay, no se versionan)
+pi/agent/skills/*/assets/template/assets/sfx/*.mp3
+
+# skills de vídeo: symlinks a worktree reels (el contenido vive en reels)
+pi/agent/skills/editar-reels-claude
+pi/agent/skills/prepara-tu-ordenador-reels-editor-deps
+pi/agent/skills/video-edit
+pi/agent/skills/video-editor-mix
+
+# herdr-t3 layout (github.com/JinJieBeWater/herdr-t3): no se versiona aquí
+herdr/app/layouts/herdr-t3.json
+herdr/app/layouts/herdr-t3.svg
+herdr/app/mods/t3-*/
+herdr/app/mods/git*/
+
+# pi sessions
+pi/agent/claude-bridge/sessions
