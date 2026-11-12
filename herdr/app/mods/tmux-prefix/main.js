@@ -36,11 +36,12 @@ const BINDINGS = [
   ["D", "Close space", "space.close"],
   // The TUI's worktree keys.
   ["o", "Open worktree", () => worktree("open")],
-  ["g", "New worktree", () => worktree("new")],
+  // ["g", "New worktree", () => worktree("new")],
   ["J", "Next space", "space.next", {}, true],
   ["K", "Previous space", "space.prev", {}, true],
   // The TUI's [[keys.command]] panes (hunk diff). The path is absolute: the
   // core on wsl starts with a minimal PATH that has no linuxbrew.
+  ["g", "Toggle git diffviewer options", "mod.open", { name: "herdr-gitdiff-menu" }],
   ["G", "Toggle changes panel", "layout.toggle", { id: "panel" }],
   ["H", "hunk diff", "pane.split", { direction: "right", argv: ["/home/linuxbrew/.linuxbrew/bin/hunk", "diff"] }],
   ["z", "Zoom pane", "pane.zoom"],
