@@ -150,7 +150,6 @@
                 "px": 368
               },
               "min": 280,
-              "max": 900,
               "children": [
                 {
                   "id": "panel-body",
