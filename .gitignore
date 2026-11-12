@@ -57,3 +57,6 @@ herdr/app/layouts/herdr-t3.json
 herdr/app/layouts/herdr-t3.svg
 herdr/app/mods/t3-*/
 herdr/app/mods/git*/
+
+# pi sessions
+pi/agent/claude-bridge/sessions
